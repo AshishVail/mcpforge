@@ -1,0 +1,46 @@
+name: Manual Inventory API
+version: "1.0.0"
+base_url: https://inventory.example.com
+description: A manually described inventory API.
+endpoints:
+  - operation_id: list_items
+    method: GET
+    path: /items
+    summary: List inventory items
+    tags:
+      - Inventory
+    parameters:
+      - name: limit
+        location: query
+        required: false
+        schema:
+          type: integer
+          default: 20
+    responses:
+      - status_code: 200
+        description: Inventory items
+        content_type: application/json
+        schema:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+  - operation_id: create_item
+    method: POST
+    path: /items
+    request_body:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+    responses:
+      - status_code: 201
+        description: Created
