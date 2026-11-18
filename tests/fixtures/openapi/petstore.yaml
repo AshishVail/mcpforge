@@ -1,0 +1,66 @@
+openapi: 3.0.3
+info:
+  title: Petstore
+  version: "1.0.0"
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /pets/{pet_id}:
+    parameters:
+      - name: pet_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: get_pet
+      summary: Get a pet
+      tags:
+        - Pets
+      responses:
+        "200":
+          description: A pet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        "404":
+          description: Pet not found
+  /pets:
+    post:
+      operationId: create_pet
+      summary: Create a pet
+      tags:
+        - Pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PetInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+components:
+  schemas:
+    Pet:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    PetInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
