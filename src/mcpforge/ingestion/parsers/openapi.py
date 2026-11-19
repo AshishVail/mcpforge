@@ -2,7 +2,6 @@
 
 from collections.abc import Mapping
 from typing import Any
-from urllib.parse import urljoin
 
 from mcpforge.domain.models import ApiDocument
 from mcpforge.ingestion.errors import SpecificationError
@@ -20,7 +19,9 @@ class OpenAPIParser:
         document = loaded.document
         version = document.get("openapi")
         if not isinstance(version, str) or not version.startswith(("3.0", "3.1")):
-            raise SpecificationError("document is not an OpenAPI 3.0 or 3.1 specification")
+            raise SpecificationError(
+                "document is not an OpenAPI 3.0 or 3.1 specification"
+            )
 
         paths = document.get("paths", {})
         if not isinstance(paths, Mapping):
@@ -49,7 +50,9 @@ class OpenAPIParser:
                 }:
                     continue
                 if not isinstance(operation, Mapping):
-                    raise SpecificationError(f"operation {method} {path} must be a mapping")
+                    raise SpecificationError(
+                        f"operation {method} {path} must be a mapping"
+                    )
 
                 endpoints.append(
                     endpoint_from_operation(
@@ -61,11 +64,19 @@ class OpenAPIParser:
                     )
                 )
 
+        info = document.get("info", {})
+        if not isinstance(info, Mapping):
+            info = {}
+
         return ApiDocument(
-            title=str(document.get("info", {}).get("title", "Untitled API")),
-            version=str(document.get("info", {}).get("version", version)),
+            title=str(info.get("title", "Untitled API")),
+            version=str(info.get("version", version)),
             base_url=self._base_url(document),
-            description=document.get("info", {}).get("description"),
+            description=(
+                str(info["description"])
+                if isinstance(info.get("description"), str)
+                else None
+            ),
             endpoints=endpoints,
             source_format="openapi",
             source_name=loaded.source.location,
