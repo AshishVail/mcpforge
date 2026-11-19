@@ -1,5 +1,4 @@
 from io import BytesIO
-from pathlib import Path
 from urllib.request import Request
 
 import pytest
@@ -10,7 +9,11 @@ from mcpforge.ingestion.source import Source
 
 
 class FakeResponse(BytesIO):
-    def __init__(self, body: bytes, content_type: str = "application/json") -> None:
+    def __init__(
+        self,
+        body: bytes,
+        content_type: str = "application/json",
+    ) -> None:
         super().__init__(body)
         self.headers = {"Content-Type": content_type}
 
@@ -22,7 +25,10 @@ class FakeResponse(BytesIO):
 
 
 def test_load_remote_reads_json(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_urlopen(request: Request, timeout: float) -> FakeResponse:
+    def fake_urlopen(
+        request: Request,
+        timeout: float,
+    ) -> FakeResponse:
         return FakeResponse(b'{"openapi": "3.0.3"}')
 
     monkeypatch.setattr(remote, "urlopen", fake_urlopen)
@@ -33,10 +39,18 @@ def test_load_remote_reads_json(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_load_remote_enforces_limit(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_urlopen(request: Request, timeout: float) -> FakeResponse:
+    def fake_urlopen(
+        request: Request,
+        timeout: float,
+    ) -> FakeResponse:
         return FakeResponse(b"12345")
 
     monkeypatch.setattr(remote, "urlopen", fake_urlopen)
 
     with pytest.raises(SourceLoadError, match="exceeds"):
-        remote.load_remote(Source("https://example.com/api.yaml", max_bytes=2))
+        remote.load_remote(
+            Source(
+                "https://example.com/api.yaml",
+                max_bytes=2,
+            )
+        )
