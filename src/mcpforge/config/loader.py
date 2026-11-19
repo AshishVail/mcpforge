@@ -20,11 +20,7 @@ def _read_document(path: Path) -> dict[str, Any]:
         raise ConfigurationError(f"cannot read configuration {path}: {exc}") from exc
 
     try:
-        document: Any
-        if path.suffix.lower() == ".json":
-            document = json.loads(text)
-        else:
-            document = yaml.safe_load(text)
+        document: Any = json.loads(text) if path.suffix.lower() == ".json" else yaml.safe_load(text)
     except (json.JSONDecodeError, yaml.YAMLError) as exc:
         raise ConfigurationError(f"invalid configuration syntax in {path}") from exc
 

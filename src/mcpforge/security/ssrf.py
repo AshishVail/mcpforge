@@ -43,9 +43,7 @@ def enforce_safe_addresses(addresses: Iterable[str]) -> None:
 
     unsafe = [address for address in addresses if is_blocked_ip(address)]
     if unsafe:
-        raise PermissionError(
-            f"request resolves to blocked network address: {unsafe[0]}"
-        )
+        raise PermissionError(f"request resolves to blocked network address: {unsafe[0]}")
 
 
 def validate_url_network(url: str) -> tuple[str, ...]:

@@ -12,9 +12,7 @@ def test_run_command_requires_existing_project_when_source_is_omitted(
 ) -> None:
     missing = tmp_path / "missing.yaml"
 
-    with patch(
-        "mcpforge.cli.commands.run.RuntimeApplication.from_config"
-    ) as from_config:
+    with patch("mcpforge.cli.commands.run.RuntimeApplication.from_config") as from_config:
         from_config.side_effect = FileNotFoundError("configuration not found")
 
         result = runner.invoke(

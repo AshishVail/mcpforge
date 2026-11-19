@@ -26,9 +26,7 @@ class EnvReference(BaseModel):
     @model_validator(mode="after")
     def validate_default(self) -> Self:
         if self.required and self.default is not None:
-            raise ValueError(
-                "required environment references cannot define defaults"
-            )
+            raise ValueError("required environment references cannot define defaults")
         return self
 
 
@@ -94,11 +92,7 @@ class StaticHeadersAuthConfig(BaseModel):
 
 
 AuthConfig = (
-    NoAuthConfig
-    | BearerAuthConfig
-    | ApiKeyAuthConfig
-    | BasicAuthConfig
-    | StaticHeadersAuthConfig
+    NoAuthConfig | BearerAuthConfig | ApiKeyAuthConfig | BasicAuthConfig | StaticHeadersAuthConfig
 )
 
 
@@ -171,13 +165,11 @@ class ProjectConfig(BaseModel):
         if self.source.base_url is not None and self.security.allowed_hosts:
             source_host = self.source.base_url.host
             allowed_hosts = {
-                host.strip().rstrip(".").lower()
-                for host in self.security.allowed_hosts
+                host.strip().rstrip(".").lower() for host in self.security.allowed_hosts
             }
             if source_host.lower().rstrip(".") not in allowed_hosts:
                 raise ValueError(
-                    f"source host {source_host!r} is not present in "
-                    "security.allowed_hosts"
+                    f"source host {source_host!r} is not present in security.allowed_hosts"
                 )
 
         return self

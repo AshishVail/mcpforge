@@ -1,7 +1,6 @@
 """Parser for the developer-friendly manual MCPForge YAML format."""
 
 from collections.abc import Mapping
-from typing import Any
 
 from mcpforge.domain.models import ApiDocument
 from mcpforge.ingestion.errors import SpecificationError
@@ -31,11 +30,11 @@ class ManualParser:
             path = raw.get("path")
             method = raw.get("method")
             if not isinstance(path, str) or not isinstance(method, str):
-                raise SpecificationError(
-                    f"manual endpoint {index} requires string path and method"
-                )
+                raise SpecificationError(f"manual endpoint {index} requires string path and method")
 
             endpoint_raw = dict(raw)
+            if "operation_id" in endpoint_raw and "operationId" not in endpoint_raw:
+                endpoint_raw["operationId"] = endpoint_raw.pop("operation_id")
             if "request_body" in endpoint_raw and "requestBody" not in endpoint_raw:
                 endpoint_raw["requestBody"] = endpoint_raw.pop("request_body")
 

@@ -28,6 +28,4 @@ def matches_selectors(endpoint: Endpoint, config: EndpointFilterConfig) -> bool:
         return False
     if config.methods and endpoint.method not in config.methods:
         return False
-    if endpoint.deprecated and not config.include_deprecated:
-        return False
-    return True
+    return not (endpoint.deprecated and not config.include_deprecated)

@@ -45,9 +45,7 @@ def build_dependencies(
     )
 
     if config.source.base_url is not None:
-        document = document.model_copy(
-            update={"base_url": str(config.source.base_url)}
-        )
+        document = document.model_copy(update={"base_url": str(config.source.base_url)})
 
     filtered = filter_document(
         document,

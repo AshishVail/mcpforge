@@ -35,6 +35,5 @@ def enforce_operation_safety(
     if not is_operation_allowed(endpoint, config):
         safety = endpoint.safety or classify_method(endpoint.method)
         raise PermissionError(
-            f"{safety.value} operation is disabled for "
-            f"{endpoint.method.value} {endpoint.path}"
+            f"{safety.value} operation is disabled for {endpoint.method.value} {endpoint.path}"
         )

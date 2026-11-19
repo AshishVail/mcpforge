@@ -44,6 +44,7 @@ paths:
           description: Healthy
 """
 
+
 def scaffold_project(
     directory: Path,
     *,

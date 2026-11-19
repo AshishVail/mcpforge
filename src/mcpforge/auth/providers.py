@@ -1,7 +1,6 @@
 """Environment-backed authentication providers."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
 
 from mcpforge.auth.models import ResolvedAuth
 from mcpforge.config.models import (
@@ -36,9 +35,7 @@ class BearerAuthProvider(AuthProvider):
         self.config = config
 
     def resolve(self) -> ResolvedAuth:
-        return ResolvedAuth(
-            headers={"Authorization": f"Bearer {resolve_env(self.config.token)}"}
-        )
+        return ResolvedAuth(headers={"Authorization": f"Bearer {resolve_env(self.config.token)}"})
 
 
 class ApiKeyAuthProvider(AuthProvider):
@@ -70,7 +67,6 @@ class StaticHeadersAuthProvider(AuthProvider):
     def resolve(self) -> ResolvedAuth:
         return ResolvedAuth(
             headers={
-                name: resolve_env(reference)
-                for name, reference in self.config.headers.items()
+                name: resolve_env(reference) for name, reference in self.config.headers.items()
             }
         )

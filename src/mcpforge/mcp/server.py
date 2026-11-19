@@ -18,9 +18,7 @@ def create_sdk_server(
     try:
         from mcp.server.fastmcp import FastMCP
     except ImportError as exc:
-        raise RuntimeError(
-            "The official MCP SDK is required to create an MCP server"
-        ) from exc
+        raise RuntimeError("The official MCP SDK is required to create an MCP server") from exc
 
     return FastMCP(name)
 

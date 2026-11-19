@@ -6,11 +6,11 @@ from typing import Annotated
 import typer
 from rich.table import Table
 
+from mcpforge.cli.output import console
 from mcpforge.config.loader import load_config
 from mcpforge.filtering.evaluator import filter_document
 from mcpforge.generation.service import generate_tools
 from mcpforge.ingestion.service import ingest_path
-from mcpforge.cli.output import console
 
 app = typer.Typer(name="inspect", help="Inspect endpoints and generated tools.")
 
@@ -46,6 +46,7 @@ def inspect(
 
     if output.lower() == "json":
         import json
+
         typer.echo(json.dumps(rows, indent=2))
         return
 

@@ -13,9 +13,7 @@ async def test_retry_retries_retryable_execution_failure() -> None:
         nonlocal attempts
         attempts += 1
         if attempts < 3:
-            raise ExecutionFailure(
-                ExecutionError("temporary", "temporary", retryable=True)
-            )
+            raise ExecutionFailure(ExecutionError("temporary", "temporary", retryable=True))
         return "ok"
 
     result = await run_with_retries(

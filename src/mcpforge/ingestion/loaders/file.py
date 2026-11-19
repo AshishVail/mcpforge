@@ -12,11 +12,7 @@ from mcpforge.ingestion.source import LoadedDocument, Source
 
 def _parse_document(text: str, suffix: str) -> dict[str, Any]:
     try:
-        value: Any
-        if suffix.lower() == ".json":
-            value = json.loads(text)
-        else:
-            value = yaml.safe_load(text)
+        value: Any = json.loads(text) if suffix.lower() == ".json" else yaml.safe_load(text)
     except (json.JSONDecodeError, yaml.YAMLError) as exc:
         raise SourceLoadError("local specification contains invalid JSON or YAML") from exc
 
@@ -41,9 +37,7 @@ def load_file(source: Source) -> LoadedDocument:
         raise SourceLoadError(f"cannot inspect specification file: {path}") from exc
 
     if size > source.max_bytes:
-        raise SourceLoadError(
-            f"specification file exceeds the {source.max_bytes}-byte limit"
-        )
+        raise SourceLoadError(f"specification file exceeds the {source.max_bytes}-byte limit")
 
     try:
         text = path.read_text(encoding="utf-8")

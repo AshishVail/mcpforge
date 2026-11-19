@@ -63,9 +63,7 @@ def ingest(source: Source) -> ApiDocument:
     except (SpecificationError, ValueError) as exc:
         if isinstance(exc, SpecificationError):
             raise
-        raise SpecificationError(
-            f"failed to normalize {source.location} as {format_name}"
-        ) from exc
+        raise SpecificationError(f"failed to normalize {source.location} as {format_name}") from exc
 
 
 def ingest_path(

@@ -16,9 +16,7 @@ def test_resolves_nested_json_pointer() -> None:
         }
     }
 
-    result = ReferenceResolver(document).resolve(
-        {"$ref": "#/components/schemas/User"}
-    )
+    result = ReferenceResolver(document).resolve({"$ref": "#/components/schemas/User"})
 
     assert result["type"] == "object"
     assert result["properties"]["id"]["type"] == "integer"

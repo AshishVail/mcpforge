@@ -18,6 +18,4 @@ def test_redacts_sensitive_mapping_keys() -> None:
 
 
 def test_redacts_known_secret_values() -> None:
-    assert redact_secrets("token=secret-value", ["secret-value"]) == (
-        "token=***REDACTED***"
-    )
+    assert redact_secrets("token=secret-value", ["secret-value"]) == ("token=***REDACTED***")

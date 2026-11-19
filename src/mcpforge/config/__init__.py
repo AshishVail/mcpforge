@@ -2,8 +2,8 @@
 
 from mcpforge.config.loader import DEFAULT_CONFIG_FILENAME, load_config
 from mcpforge.config.models import (
-    ApiSourceConfig,
     ApiKeyAuthConfig,
+    ApiSourceConfig,
     BasicAuthConfig,
     BearerAuthConfig,
     EndpointFilterConfig,

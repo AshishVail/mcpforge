@@ -19,9 +19,7 @@ class OpenAPIParser:
         document = loaded.document
         version = document.get("openapi")
         if not isinstance(version, str) or not version.startswith(("3.0", "3.1")):
-            raise SpecificationError(
-                "document is not an OpenAPI 3.0 or 3.1 specification"
-            )
+            raise SpecificationError("document is not an OpenAPI 3.0 or 3.1 specification")
 
         paths = document.get("paths", {})
         if not isinstance(paths, Mapping):
@@ -50,9 +48,7 @@ class OpenAPIParser:
                 }:
                     continue
                 if not isinstance(operation, Mapping):
-                    raise SpecificationError(
-                        f"operation {method} {path} must be a mapping"
-                    )
+                    raise SpecificationError(f"operation {method} {path} must be a mapping")
 
                 endpoints.append(
                     endpoint_from_operation(
@@ -73,9 +69,7 @@ class OpenAPIParser:
             version=str(info.get("version", version)),
             base_url=self._base_url(document),
             description=(
-                str(info["description"])
-                if isinstance(info.get("description"), str)
-                else None
+                str(info["description"]) if isinstance(info.get("description"), str) else None
             ),
             endpoints=endpoints,
             source_format="openapi",

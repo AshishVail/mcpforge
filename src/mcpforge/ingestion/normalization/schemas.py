@@ -32,10 +32,11 @@ def normalize_schema(
         resolved = raw
 
     properties_raw = resolved.get("properties", {})
-    properties = {
-        str(name): normalize_schema(value, resolver)
-        for name, value in properties_raw.items()
-    } if isinstance(properties_raw, Mapping) else {}
+    properties = (
+        {str(name): normalize_schema(value, resolver) for name, value in properties_raw.items()}
+        if isinstance(properties_raw, Mapping)
+        else {}
+    )
 
     items_raw = resolved.get("items")
     items = normalize_schema(items_raw, resolver) if items_raw is not None else None
@@ -53,9 +54,7 @@ def normalize_schema(
         "additionalProperties",
     }
     extras = {
-        str(key): value
-        for key, value in resolved.items()
-        if key not in known and key != "$ref"
+        str(key): value for key, value in resolved.items() if key not in known and key != "$ref"
     }
 
     return JsonSchema(
