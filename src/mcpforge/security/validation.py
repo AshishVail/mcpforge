@@ -3,10 +3,10 @@
 from urllib.parse import urlparse
 
 from mcpforge.config.models import SecurityConfig
+from mcpforge.domain.models import Endpoint
 from mcpforge.security.hosts import enforce_allowed_host
 from mcpforge.security.safety import enforce_operation_safety
 from mcpforge.security.ssrf import validate_url_network
-from mcpforge.domain.models import Endpoint
 
 
 def validate_request_target(
