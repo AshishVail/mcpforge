@@ -6,10 +6,12 @@ import typer
 
 from mcpforge.ingestion.service import ingest_path
 
-app = typer.Typer(name="import", help="Load and normalize an API specification.")
+app = typer.Typer(
+    name="import",
+    help="Load and normalize an API specification.",
+)
 
-
-@app.callback(invoke_without_command=True)
+@app.command()
 def import_spec(
     source: Annotated[str, typer.Argument(help="Local path or HTTP(S) URL.")],
     format: Annotated[

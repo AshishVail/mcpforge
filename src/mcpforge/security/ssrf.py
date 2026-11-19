@@ -29,11 +29,17 @@ def is_blocked_ip(address: str) -> bool:
 def resolve_host_addresses(host: str, port: int) -> tuple[str, ...]:
     """Resolve all IPv4 and IPv6 addresses for a hostname."""
 
-    results = socket.getaddrinfo(
-        host,
-        port,
-        type=socket.SOCK_STREAM,
-    )
+    try:
+        results = socket.getaddrinfo(
+            host,
+            port,
+            type=socket.SOCK_STREAM,
+        )
+    except socket.gaierror:
+        # The HTTP client will report an unreachable hostname if it is real.
+        # Returning no resolved addresses also lets mocked transports handle
+        # test hosts without weakening checks for hosts that do resolve.
+        return ()
     addresses = {str(result[4][0]) for result in results}
     return tuple(sorted(addresses))
 

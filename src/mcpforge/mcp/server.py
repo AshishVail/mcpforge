@@ -9,10 +9,7 @@ from mcpforge.mcp.adapter import MCPAdapter
 from mcpforge.mcp.transports import Transport, run_transport
 
 
-def create_sdk_server(
-    *,
-    name: str = "mcpforge",
-) -> Any:
+def create_sdk_server(name: str = "mcpforge") -> Any:
     """Create an official FastMCP server instance."""
 
     try:

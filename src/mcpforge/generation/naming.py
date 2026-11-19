@@ -31,7 +31,11 @@ def default_tool_name(endpoint: Endpoint) -> str:
         return "_".join(words)
 
     segments = [segment for segment in endpoint.path.split("/") if segment]
-    resources = [_singular(segment) for segment in segments if not segment.startswith("{}")]
+    resources = [
+        _singular(segment)
+        for segment in segments
+        if not (segment.startswith("{") and segment.endswith("}"))
+    ]
     method = endpoint.method.value.lower()
 
     if method == "get" and segments and segments[-1].startswith("{"):

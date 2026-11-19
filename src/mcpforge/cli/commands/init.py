@@ -35,7 +35,8 @@ def init(
             with_example=with_example,
         )
     except FileExistsError as exc:
-        raise typer.BadParameter(str(exc)) from exc
+        typer.echo(str(exc))
+        raise typer.Exit(code=1) from exc
 
     for path in files:
         print_success(f"Created {path}")
