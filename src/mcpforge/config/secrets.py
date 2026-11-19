@@ -1,53 +1,103 @@
-"""Strict environment-backed secret handling."""
+"""Environment-backed secret handling without configuration-model imports."""
 
 import os
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
-from mcpforge.config.models import EnvReference
 from mcpforge.domain.errors import ConfigurationError
 
 
-def resolve_env(reference: EnvReference) -> str:
-    """Resolve a secret from the environment without exposing its value."""
+@runtime_checkable
+class EnvironmentReference(Protocol):
+    """Structural contract for an environment-backed configuration value."""
 
-    value = os.getenv(reference.env)
+    env: str
+    required: bool
+    default: str | None
+
+
+def _is_environment_reference(value: Any) -> bool:
+    """Return whether a value has the EnvReference runtime shape."""
+
+    if isinstance(value, Mapping):
+        keys = set(value)
+        return (
+            isinstance(value.get("env"), str)
+            and keys <= {"env", "required", "default"}
+        )
+
+    return (
+        isinstance(value, EnvironmentReference)
+        and isinstance(value.env, str)
+        and isinstance(value.required, bool)
+        and (value.default is None or isinstance(value.default, str))
+    )
+
+
+def resolve_env(reference: EnvironmentReference) -> str:
+    """Resolve a required or optional environment variable."""
+
+    if not _is_environment_reference(reference):
+        raise ConfigurationError(
+            "secret values must be environment-variable references"
+        )
+
+    environment_name = reference.env
+    value = os.getenv(environment_name)
+
     if value is None:
         if reference.default is not None:
             return reference.default
         if reference.required:
             raise ConfigurationError(
-                f"required environment variable {reference.env!r} is not set"
+                f"required environment variable {environment_name!r} is not set"
             )
         return ""
+
     if not value:
-        raise ConfigurationError(f"environment variable {reference.env!r} is empty")
+        raise ConfigurationError(
+            f"environment variable {environment_name!r} is empty"
+        )
+
     return value
 
 
-def validate_secret_references(value: Any, path: str = "config") -> None:
-    """Reject literal values in fields that represent secrets.
+def _is_secret_key(key: object) -> bool:
+    normalized = str(key).strip().lower().replace("-", "_")
+    return normalized in {
+        "token",
+        "password",
+        "secret",
+        "api_key",
+        "access_token",
+        "refresh_token",
+        "client_secret",
+        "authorization",
+    }
 
-    Secret-bearing configuration must use ``EnvReference``. This recursive
-    guard also catches raw dictionaries such as ``{"token": "literal"}``
-    before they can be used by runtime code.
+
+def validate_secret_references(value: Any, path: str = "config") -> None:
+    """Reject literal values in secret-bearing configuration fields.
+
+    This function intentionally depends only on structural typing and standard
+    library protocols, so ``config.models`` can import it without a cycle.
     """
 
-    secret_names = {"token", "password", "secret", "api_key", "key", "authorization"}
-
-    if isinstance(value, EnvReference):
+    if _is_environment_reference(value):
         return
 
     if isinstance(value, Mapping):
         for key, child in value.items():
-            key_text = str(key).lower()
-            if key_text in secret_names and not isinstance(child, EnvReference):
+            child_path = f"{path}.{key}"
+
+            if _is_secret_key(key) and not _is_environment_reference(child):
                 raise ConfigurationError(
-                    f"{path}.{key} must be an environment variable reference"
+                    f"{child_path} must be an environment variable reference"
                 )
-            validate_secret_references(child, f"{path}.{key}")
+
+            validate_secret_references(child, child_path)
         return
 
-    if isinstance(value, Sequence) and not isinstance(value, str | bytes):
+    if isinstance(value, Sequence) and not isinstance(value, str | bytes | bytearray):
         for index, child in enumerate(value):
             validate_secret_references(child, f"{path}[{index}]")
