@@ -11,7 +11,8 @@ from mcpforge.cli.output import console
 app = typer.Typer(
     name="mcpforge",
     help="Turn any REST API into an AI-ready MCP server.",
-    no_args_is_help=True,
+    no_args_is_help=False,
+    invoke_without_command=True,
     add_completion=False,
 )
 
@@ -28,7 +29,7 @@ app.add_typer(run.app)
 def callback(
     version: Annotated[
         bool,
-        typer.Option("--version", help="Show the MCPForge version."),
+        typer.Option("--version", help="Show the MCPForge version.", is_eager=True),
     ] = False,
 ) -> None:
     """MCPForge command-line interface."""
