@@ -5,11 +5,11 @@ from typing import Annotated
 
 import typer
 
+from mcpforge.cli.output import print_success
 from mcpforge.config.loader import load_config
 from mcpforge.filtering.evaluator import filter_document
 from mcpforge.generation.service import generate_tools
 from mcpforge.ingestion.service import ingest_path
-from mcpforge.cli.output import print_success
 
 app = typer.Typer(name="validate", help="Validate project configuration and source.")
 
@@ -37,6 +37,5 @@ def validate(
         raise typer.BadParameter("strict validation produced no enabled tools")
 
     print_success(
-        f"Configuration valid: {len(filtered.endpoints)} endpoint(s), "
-        f"{len(tools)} tool(s)"
+        f"Configuration valid: {len(filtered.endpoints)} endpoint(s), {len(tools)} tool(s)"
     )

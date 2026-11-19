@@ -1,6 +1,6 @@
 """Endpoint-to-tool generation."""
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from typing import Any
 
 from mcpforge.domain.models import ApiDocument

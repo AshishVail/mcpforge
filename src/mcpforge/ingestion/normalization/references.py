@@ -35,26 +35,16 @@ class ReferenceResolver:
             target = self._lookup(reference)
             resolved = self.resolve(target, (*stack, reference))
 
-            siblings = {
-                key: item
-                for key, item in value.items()
-                if key != "$ref"
-            }
+            siblings = {key: item for key, item in value.items() if key != "$ref"}
             if siblings and isinstance(resolved, Mapping):
                 merged = dict(resolved)
                 merged.update(
-                    {
-                        key: self.resolve(item, (*stack, reference))
-                        for key, item in siblings.items()
-                    }
+                    {key: self.resolve(item, (*stack, reference)) for key, item in siblings.items()}
                 )
                 return merged
             return resolved
 
-        return {
-            str(key): self.resolve(item, stack)
-            for key, item in value.items()
-        }
+        return {str(key): self.resolve(item, stack) for key, item in value.items()}
 
     def _lookup(self, reference: str) -> Any:
         current: Any = self._document

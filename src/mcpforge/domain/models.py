@@ -1,5 +1,7 @@
 """Normalized parser-independent REST API models."""
 
+from __future__ import annotations
+
 from typing import Annotated, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -19,9 +21,9 @@ class JsonSchema(BaseModel):
     enum: list[object] | None = None
     default: object | None = None
     required: list[str] = Field(default_factory=list)
-    properties: dict[str, "JsonSchema"] = Field(default_factory=dict)
-    items: "JsonSchema | None" = None
-    additional_properties: bool | "JsonSchema" | None = Field(
+    properties: dict[str, JsonSchema] = Field(default_factory=dict)
+    items: JsonSchema | None = None
+    additional_properties: bool | JsonSchema | None = Field(
         default=None,
         alias="additionalProperties",
     )

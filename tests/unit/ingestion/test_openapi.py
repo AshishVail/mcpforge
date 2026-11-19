@@ -6,12 +6,7 @@ from mcpforge.ingestion.source import Source
 
 
 def test_openapi_parser_normalizes_fixture() -> None:
-    path = (
-        Path(__file__).parents[2]
-        / "fixtures"
-        / "openapi"
-        / "petstore.yaml"
-    )
+    path = Path(__file__).parents[2] / "fixtures" / "openapi" / "petstore.yaml"
 
     document = OpenAPIParser().parse(load_file(Source(str(path))))
 
@@ -20,9 +15,7 @@ def test_openapi_parser_normalizes_fixture() -> None:
     assert len(document.endpoints) == 2
 
     get_pet = next(
-        endpoint
-        for endpoint in document.endpoints
-        if endpoint.operation_id == "get_pet"
+        endpoint for endpoint in document.endpoints if endpoint.operation_id == "get_pet"
     )
 
     assert get_pet.parameters[0].name == "pet_id"

@@ -21,10 +21,7 @@ def _is_environment_reference(value: Any) -> bool:
 
     if isinstance(value, Mapping):
         keys = set(value)
-        return (
-            isinstance(value.get("env"), str)
-            and keys <= {"env", "required", "default"}
-        )
+        return isinstance(value.get("env"), str) and keys <= {"env", "required", "default"}
 
     return (
         isinstance(value, EnvironmentReference)
@@ -38,9 +35,7 @@ def resolve_env(reference: EnvironmentReference) -> str:
     """Resolve a required or optional environment variable."""
 
     if not _is_environment_reference(reference):
-        raise ConfigurationError(
-            "secret values must be environment-variable references"
-        )
+        raise ConfigurationError("secret values must be environment-variable references")
 
     environment_name = reference.env
     value = os.getenv(environment_name)
@@ -55,9 +50,7 @@ def resolve_env(reference: EnvironmentReference) -> str:
         return ""
 
     if not value:
-        raise ConfigurationError(
-            f"environment variable {environment_name!r} is empty"
-        )
+        raise ConfigurationError(f"environment variable {environment_name!r} is empty")
 
     return value
 
@@ -91,9 +84,7 @@ def validate_secret_references(value: Any, path: str = "config") -> None:
             child_path = f"{path}.{key}"
 
             if _is_secret_key(key) and not _is_environment_reference(child):
-                raise ConfigurationError(
-                    f"{child_path} must be an environment variable reference"
-                )
+                raise ConfigurationError(f"{child_path} must be an environment variable reference")
 
             validate_secret_references(child, child_path)
         return

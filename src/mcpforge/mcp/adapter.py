@@ -26,8 +26,7 @@ class MCPAdapter:
         self.endpoints = tuple(endpoints)
         self.tools = tuple(tools)
         self._endpoint_by_key = {
-            self._endpoint_key(endpoint): endpoint
-            for endpoint in self.endpoints
+            self._endpoint_key(endpoint): endpoint for endpoint in self.endpoints
         }
 
     @staticmethod
@@ -45,15 +44,10 @@ class MCPAdapter:
                 return endpoint
 
         for endpoint in self.endpoints:
-            if (
-                endpoint.path == tool.endpoint_path
-                and endpoint.method.value == tool.method
-            ):
+            if endpoint.path == tool.endpoint_path and endpoint.method.value == tool.method:
                 return endpoint
 
-        raise ToolRegistrationError(
-            f"no endpoint found for generated tool {tool.name!r}"
-        )
+        raise ToolRegistrationError(f"no endpoint found for generated tool {tool.name!r}")
 
     def register(self, server: Any) -> None:
         """Register every generated tool on a FastMCP-compatible server."""
@@ -86,9 +80,7 @@ class MCPAdapter:
             try:
                 result = register(callback)
             except TypeError as exc:
-                raise ToolRegistrationError(
-                    f"could not register MCP tool {tool.name!r}"
-                ) from exc
+                raise ToolRegistrationError(f"could not register MCP tool {tool.name!r}") from exc
 
         if inspect.isawaitable(result):
             raise ToolRegistrationError(

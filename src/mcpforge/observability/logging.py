@@ -26,11 +26,7 @@ def configure_logging(
 
     if not logger.handlers:
         handler = logging.StreamHandler()
-        handler.setFormatter(
-            RedactedFormatter(
-                "%(asctime)s %(levelname)s %(name)s %(message)s"
-            )
-        )
+        handler.setFormatter(RedactedFormatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
         logger.addHandler(handler)
 
     logger.propagate = False

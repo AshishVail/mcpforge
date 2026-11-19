@@ -1,10 +1,10 @@
 """Safe remote specification loading without coupling ingestion to HTTPX."""
 
 import json
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 from typing import Any
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 import yaml
 

@@ -4,7 +4,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from mcpforge.domain.enums import HttpMethod, OperationSafety
-from mcpforge.domain.models import Endpoint, Parameter, RequestBody, ResponseDefinition
+from mcpforge.domain.models import Endpoint, Parameter, RequestBody
 from mcpforge.ingestion.errors import SpecificationError
 from mcpforge.ingestion.normalization.parameters import (
     normalize_parameter,

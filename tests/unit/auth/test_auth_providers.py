@@ -8,9 +8,7 @@ from mcpforge.config.models import (
 
 def test_bearer_provider_resolves_environment(monkeypatch) -> None:
     monkeypatch.setenv("MCPFORGE_TOKEN", "token-value")
-    provider = BearerAuthProvider(
-        BearerAuthConfig(token=EnvReference(env="MCPFORGE_TOKEN"))
-    )
+    provider = BearerAuthProvider(BearerAuthConfig(token=EnvReference(env="MCPFORGE_TOKEN")))
 
     assert provider.resolve().headers["Authorization"] == "Bearer token-value"
 

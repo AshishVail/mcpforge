@@ -16,7 +16,9 @@ class SafetyPolicy:
     include_deprecated: bool = False
 
     @classmethod
-    def from_config(cls, config: SecurityConfig, include_deprecated: bool = False) -> "SafetyPolicy":
+    def from_config(
+        cls, config: SecurityConfig, include_deprecated: bool = False
+    ) -> "SafetyPolicy":
         return cls(
             allow_write_operations=config.allow_write_operations,
             allow_delete_operations=config.allow_delete_operations,

@@ -6,12 +6,12 @@ from typing import Annotated
 
 import typer
 
+from mcpforge.cli.output import print_success
 from mcpforge.config.loader import load_config
 from mcpforge.execution.client import HTTPClient
 from mcpforge.execution.engine import ExecutionEngine
 from mcpforge.filtering.evaluator import filter_document
 from mcpforge.ingestion.service import ingest_path
-from mcpforge.cli.output import print_success
 
 app = typer.Typer(name="test", help="Test API connectivity and authentication.")
 
@@ -34,10 +34,9 @@ def test(
         document = filter_document(document, project.filters, project.security)
         endpoint = next(
             (
-                item for item in document.endpoints
-                if operation is None
-                or item.operation_id == operation
-                or item.path == operation
+                item
+                for item in document.endpoints
+                if operation is None or item.operation_id == operation or item.path == operation
             ),
             None,
         )
