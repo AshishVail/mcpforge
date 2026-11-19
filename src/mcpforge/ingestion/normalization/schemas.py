@@ -67,7 +67,7 @@ def normalize_schema(
         required=list(resolved.get("required", [])),
         properties=properties,
         items=items,
-        additionalProperties=(
+        additional_properties=(
             normalize_schema(resolved["additionalProperties"], resolver)
             if isinstance(resolved.get("additionalProperties"), Mapping)
             else resolved.get("additionalProperties")

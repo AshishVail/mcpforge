@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import Any
 
+from mcpforge.generation.models import ToolDefinition
 from mcpforge.mcp.transports import Transport, run_transport
 from mcpforge.runtime.dependencies import (
     RuntimeDependencies,
@@ -37,7 +38,7 @@ class RuntimeApplication:
         return self.dependencies.server
 
     @property
-    def tools(self) -> tuple:
+    def tools(self) -> tuple[ToolDefinition, ...]:
         """Return generated tool definitions."""
 
         return self.dependencies.tools

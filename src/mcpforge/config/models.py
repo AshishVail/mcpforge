@@ -164,6 +164,8 @@ class ProjectConfig(BaseModel):
 
         if self.source.base_url is not None and self.security.allowed_hosts:
             source_host = self.source.base_url.host
+            if source_host is None:
+                raise ValueError("source base URL must include a host")
             allowed_hosts = {
                 host.strip().rstrip(".").lower() for host in self.security.allowed_hosts
             }

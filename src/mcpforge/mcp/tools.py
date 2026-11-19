@@ -1,7 +1,7 @@
 """Generated-tool invocation and argument validation."""
 
-from collections.abc import Mapping
-from typing import Any
+from collections.abc import Awaitable, Callable, Mapping
+from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict, ValidationError, create_model
 
@@ -54,10 +54,13 @@ def _argument_model(tool: ToolDefinition) -> type[BaseModel]:
         default = ... if name in required else None
         fields[name] = (annotation, default)
 
-    return create_model(
-        f"{tool.name.title().replace('_', '')}Arguments",
-        __config__=ConfigDict(extra="forbid"),
-        **fields,
+    return cast(
+        type[BaseModel],
+        create_model(  # type: ignore[call-overload]
+            f"{tool.name.title().replace('_', '')}Arguments",
+            __config__=ConfigDict(extra="forbid"),
+            **fields,
+        ),
     )
 
 
@@ -81,7 +84,7 @@ def make_tool_callback(
     tool: ToolDefinition,
     endpoint: Endpoint,
     engine: ExecutionEngine,
-):
+) -> Callable[[Mapping[str, Any] | None], Awaitable[dict[str, Any]]]:
     """Create the async callback used by the MCP adapter."""
 
     async def callback(arguments: Mapping[str, Any] | None = None) -> dict[str, Any]:

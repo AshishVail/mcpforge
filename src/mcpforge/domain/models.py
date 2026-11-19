@@ -50,7 +50,7 @@ class Parameter(BaseModel):
     location: ParameterLocation
     required: bool = False
     description: str | None = None
-    schema: JsonSchema = Field(default_factory=JsonSchema)
+    schema: JsonSchema = Field(default_factory=JsonSchema)  # type: ignore[assignment]
     deprecated: bool = False
     example: object | None = None
 
@@ -68,7 +68,7 @@ class RequestBody(BaseModel):
 
     required: bool = False
     content_type: str = "application/json"
-    schema: JsonSchema = Field(default_factory=JsonSchema)
+    schema: JsonSchema = Field(default_factory=JsonSchema)  # type: ignore[assignment]
     description: str | None = None
 
 
@@ -80,7 +80,7 @@ class ResponseDefinition(BaseModel):
     status_code: Annotated[int, Field(ge=100, le=599)]
     description: str | None = None
     content_type: str | None = None
-    schema: JsonSchema | None = None
+    schema: JsonSchema | None = None  # type: ignore[assignment]
 
 
 class Endpoint(BaseModel):

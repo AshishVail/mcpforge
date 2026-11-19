@@ -63,7 +63,7 @@ def validate_url_network(url: str) -> tuple[str, ...]:
         direct_ip = None
 
     if direct_ip is not None:
-        addresses = (str(direct_ip),)
+        addresses: tuple[str, ...] = (str(direct_ip),)
     else:
         addresses = resolve_host_addresses(host, parsed.port or 443)
 
