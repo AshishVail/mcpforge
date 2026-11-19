@@ -3,7 +3,7 @@ requires = ["hatchling>=1.25,<2"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mcpforge"
+name = "openapi-mcpforge"
 version = "0.1.0"
 description = "Turn any REST API into an AI-ready MCP server."
 readme = "README.md"
@@ -18,6 +18,11 @@ dependencies = [
   "rich>=13.7,<14",
   "httpx>=0.27,<1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/AshishVail/mcpforge"
+Repository = "https://github.com/AshishVail/mcpforge"
+Issues = "https://github.com/AshishVail/mcpforge/issues"
 
 [project.optional-dependencies]
 dev = [
