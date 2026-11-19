@@ -1,7 +1,7 @@
 """Structured execution lifecycle events."""
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -34,7 +34,7 @@ class ExecutionEvent:
 
         return cls(
             name=name,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             operation_id=operation_id,
             method=method,
             path=path,
