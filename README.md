@@ -2,119 +2,176 @@
 
 **Turn Any REST API Into an AI-Ready MCP Server — Automatically, Securely, and Without Boilerplate.**
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![MCP SDK Compatible](https://img.shields.io/badge/MCP-SDK%20Compatible-6C5CE7)](https://modelcontextprotocol.io/)
 [![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-E92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
 [![HTTPX Async](https://img.shields.io/badge/HTTPX-Async-0E7490)](https://www.python-httpx.org/)
+[![PyPI](https://img.shields.io/pypi/v/openapi-mcpforge?logo=pypi&logoColor=white)](https://pypi.org/project/openapi-mcpforge/)
+[![GitHub Release](https://img.shields.io/github/v/release/AshishVail/mcpforge?logo=github)](https://github.com/AshishVail/mcpforge/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-Ruff-D7FF64)](https://docs.astral.sh/ruff/)
 [![Type Checked: mypy](https://img.shields.io/badge/type_checked-mypy-2A6DB0)](https://mypy-lang.org/)
+[![CI](https://github.com/AshishVail/mcpforge/actions/workflows/ci.yml/badge.svg)](https://github.com/AshishVail/mcpforge/actions/workflows/ci.yml)
 
-MCPForge transforms existing REST APIs into secure, typed Model Context Protocol
-(MCP) servers. It reads OpenAPI 3.x, Swagger 2.0, or a simple developer-friendly
-YAML configuration, normalizes it into a strongly typed internal model, generates
-predictable MCP tools, and exposes those tools through local `stdio` or remote
+> **Repository:** [github.com/AshishVail/mcpforge](https://github.com/AshishVail/mcpforge)  
+> **PyPI package:** [openapi-mcpforge](https://pypi.org/project/openapi-mcpforge/)  
+> **CLI command:** `mcpforge`  
+> **Current release:** `v0.1.0`  
+> **Maintainer:** [AshishVail](https://github.com/AshishVail)
+
+MCPForge converts existing REST APIs into secure, typed Model Context Protocol
+(MCP) servers. It accepts OpenAPI 3.0/3.1, Swagger 2.0, or a developer-friendly
+manual YAML definition, normalizes the source into a strongly typed internal
+contract, generates deterministic MCP tools, resolves authentication at
+runtime, and exposes the result over local `stdio` or remote
 `streamable-http` transports.
 
-Instead of maintaining handwritten wrappers, duplicating validation schemas,
-managing authentication separately, and rebuilding transport boilerplate, teams
-can generate an AI-ready API integration in less than 60 seconds. MCPForge keeps
-the normalized domain model independent of MCP and HTTP libraries, making the
-system easier to test, extend, and maintain.
+AI assistants should not require every developer to hand-write repetitive API
+wrappers, request schemas, authentication logic, retry behavior, error
+normalization, and transport boilerplate. MCPForge provides a production-minded
+pipeline that makes REST APIs discoverable to AI clients while preserving
+important safety controls: read-only defaults, explicit mutation permissions,
+SSRF and DNS protection, host allowlists, environment-only secrets, recursive
+redaction, bounded retries, timeouts, and response-size limits.
 
----
+## Package Naming
+
+The GitHub repository is named `mcpforge`, but the published PyPI distribution
+is named `openapi-mcpforge` because the shorter `mcpforge` name was unavailable
+on PyPI.
+
+Install the published package with:
+
+~~~bash
+python -m pip install openapi-mcpforge
+~~~
+
+The executable remains:
+
+~~~bash
+mcpforge --help
+~~~
+
+The Python import namespace remains:
+
+~~~python
+import mcpforge
+~~~
 
 ## Table of Contents
 
-- [The Problem vs. the MCPForge Solution](#the-problem-vs-the-mcpforge-solution)
+- [Why MCPForge?](#why-mcpforge)
+- [The Problem vs. the Solution](#the-problem-vs-the-solution)
 - [Core Features](#core-features)
 - [System Architecture](#system-architecture)
 - [Installation](#installation)
 - [60-Second Quickstart](#60-second-quickstart)
+- [Live Verification and Release Proof](#live-verification-and-release-proof)
 - [CLI Command Reference](#cli-command-reference)
-- [Configuration and Manual API Specs](#configuration-and-manual-api-specs)
-- [Connecting to AI Clients](#connecting-to-ai-clients)
+- [Configuration Guide](#configuration-guide)
+- [Manual API Specifications](#manual-api-specifications)
+- [Connecting AI Clients](#connecting-ai-clients)
 - [Security Model and Guardrails](#security-model-and-guardrails)
 - [Project Directory Structure](#project-directory-structure)
 - [Development and Quality Checks](#development-and-quality-checks)
+- [Troubleshooting and Common Gotchas](#troubleshooting-and-common-gotchas)
 - [Roadmap](#roadmap)
+- [Contributing](#contributing)
 - [License and Attribution](#license-and-attribution)
 
 ---
 
-## The Problem vs. the MCPForge Solution
+## Why MCPForge?
 
-### Before MCPForge
+REST APIs are ubiquitous, but AI assistants need structured, discoverable tools
+rather than raw HTTP documentation. MCPForge bridges that gap by converting an
+API contract into typed, policy-controlled MCP tools.
 
-AI assistants cannot directly and safely call most REST APIs without a purpose-built
-MCP integration. Teams traditionally need to:
+MCPForge is useful when you want to:
 
-- Read the API specification manually.
-- Write endpoint-specific Python functions.
-- Reimplement path, query, header, cookie, and JSON body mapping.
-- Maintain duplicate Pydantic request models.
-- Generate tool descriptions and names manually.
-- Resolve authentication and secret sources safely.
-- Implement SSRF and private-network protections.
-- Normalize upstream errors for large-language-model recovery.
-- Add retries, timeouts, response limits, redirects, and transport lifecycle logic.
-- Maintain compatibility as the MCP SDK evolves.
-- Rebuild similar boilerplate for every API and endpoint.
+- Connect Claude Desktop, Cursor, Windsurf, or VS Code to an existing REST API.
+- Avoid writing one-off MCP wrappers for every endpoint.
+- Keep generated tools synchronized with OpenAPI or Swagger definitions.
+- Expose only approved endpoints to an AI model.
+- Resolve API credentials dynamically without placing secrets in configuration.
+- Run locally over `stdio` or deploy remotely over `streamable-http`.
+- Normalize upstream failures into responses an AI system can understand.
+- Preserve a clean architecture that can support future protocol adapters.
 
-One API can become dozens of wrapper modules and still fail to scale as the API
-changes.
+---
+
+## The Problem vs. the Solution
+
+### Without MCPForge
+
+A manually maintained integration typically requires:
+
+- Reading the API specification.
+- Writing one wrapper function per endpoint.
+- Mapping path, query, header, cookie, and body values.
+- Recreating Pydantic or JSON request models.
+- Writing tool descriptions and names.
+- Handling authentication and token rotation.
+- Implementing retries, timeouts, and response limits.
+- Normalizing HTTP errors for AI recovery.
+- Protecting against SSRF and unsafe network targets.
+- Redacting secrets from logs and diagnostics.
+- Maintaining MCP SDK compatibility.
+- Updating the wrapper whenever the API changes.
+
+A moderately sized API can produce dozens or hundreds of repetitive wrapper
+functions.
 
 ### With MCPForge
 
-```text
-API specification or manual YAML
-             |
-             v
-       MCPForge ingest
-             |
-             v
-     Normalized API model
-             |
-             v
- Typed, filtered MCP tools
-             |
-             v
- stdio or streamable-http server
-             |
-             v
-  Secure AI-to-REST execution
-```
-
-MCPForge separates API parsing from MCP generation and HTTP execution:
-
-```text
+~~~text
 OpenAPI / Swagger / Manual YAML
-              │
-              ▼
-     Parse + Normalize
-              │
-              ▼
-    Filter + Safety Policy
-              │
-              ▼
-      Generate MCP Tools
-              │
-              ▼
-   Serve through MCP SDK
-              │
-              ▼
-  Authenticate + Execute API
-```
+              |
+              v
+       Load and normalize
+              |
+              v
+     Apply filters and policies
+              |
+              v
+      Generate typed MCP tools
+              |
+              v
+       Start an MCP server
+              |
+              v
+ Securely execute upstream REST calls
+~~~
 
-The result is a repeatable pipeline:
+Typical one-command workflow:
 
-```text
+~~~bash
 mcpforge run ./openapi.yaml
-```
+~~~
 
-That command can import the specification, validate the configuration and security
-policy, generate deterministic tools, and launch a functioning MCP server with
-no handwritten endpoint wrappers.
+The pipeline is intentionally separated:
+
+~~~text
+Input Specification
+        |
+        v
+Ingestion and Normalization
+        |
+        v
+Filtering and Safety Policies
+        |
+        v
+Deterministic Tool Generation
+        |
+        v
+MCP Adapter and Transport
+        |
+        v
+Authentication, SSRF Checks, and HTTP Execution
+        |
+        v
+Upstream REST API
+~~~
 
 ---
 
@@ -122,35 +179,41 @@ no handwritten endpoint wrappers.
 
 ### Multi-Source API Ingestion
 
-MCPForge accepts multiple API definition formats:
+Supported sources include:
 
-| Source | Supported Formats | Description |
-|---|---|---|
-| Local file | OpenAPI 3.0 JSON/YAML | Reads a specification from disk |
-| Local file | OpenAPI 3.1 JSON/YAML | Supports modern JSON Schema features |
-| Local file | Swagger 2.0 JSON/YAML | Converts Swagger operations into the normalized model |
-| Remote URL | OpenAPI or Swagger | Downloads and validates a remote specification |
-| Manual YAML | `mcpforge.yaml` | Describes APIs that lack an official specification |
+| Source | Formats |
+|---|---|
+| Local file | OpenAPI 3.0 JSON/YAML |
+| Local file | OpenAPI 3.1 JSON/YAML |
+| Local file | Swagger 2.0 JSON/YAML |
+| Remote URL | OpenAPI or Swagger over HTTP(S) |
+| Manual definition | MCPForge YAML |
 
-The ingestion pipeline extracts:
+The ingestion layer extracts:
 
-- Base URLs and server definitions
+- API title and version
+- Base URL and server information
 - Paths and HTTP methods
-- Operation identifiers
+- Operation IDs
 - Summaries and descriptions
 - Tags
 - Path parameters
 - Query parameters
-- Header and cookie parameters
+- Header parameters
+- Cookie parameters
 - JSON request bodies
 - Required and optional fields
+- Response status codes
 - Response schemas
 - Deprecated operations
-- Operation metadata used by filtering and generation
+- Local `$ref` schemas
 
 ### Decoupled Normalized Domain Model
 
-Every parser emits the same Pydantic v2 model:
+All parsers emit the same Pydantic v2 internal model. Parsers never generate
+MCP tools directly.
+
+Core contracts include:
 
 - `ApiDocument`
 - `Endpoint`
@@ -160,264 +223,239 @@ Every parser emits the same Pydantic v2 model:
 - `JsonSchema`
 - `ToolDefinition`
 
-Parsers never generate MCP tools directly. The core generator and execution engine
-only receive normalized domain objects. This architectural boundary allows future
-protocol adapters for GraphQL, gRPC, SOAP, or internal API registries without
-rewriting HTTP execution, security, or CLI logic.
+This makes the system extensible. Future GraphQL, gRPC, or internal registry
+adapters can target the same normalized model without rewriting generation,
+security, or execution layers.
 
-```text
+~~~text
 OpenAPIParser ─┐
 SwaggerParser ─┼──> ApiDocument ──> ToolGenerator
 ManualParser ──┘
-```
+~~~
 
 ### Deterministic Tool Generation
 
-MCPForge generates clean MCP-compatible tool names, for example:
+MCPForge generates predictable `snake_case` names:
 
-| REST Operation | Generated Tool |
+| REST Endpoint | Generated Tool |
 |---|---|
+| `GET /users` | `list_user` |
 | `GET /users/{id}` | `get_user` |
 | `POST /orders` | `create_order` |
-| `GET /users/{id}/projects` | `get_user_projects` |
+| `PATCH /orders/{id}` | `update_order` |
 | `DELETE /sessions/{id}` | `delete_session` |
 
-Tool generation provides:
+Generation supports:
 
-- Deterministic `snake_case` names
-- Stable collision suffixing
-- Operation-ID-aware naming
-- Path and HTTP-method fallback naming
+- `operationId`-based naming
+- HTTP method and path fallback naming
+- Singular/plural resource normalization
+- Deterministic collision suffixes
 - Manual name overrides
 - Manual description overrides
 - Strict JSON input schemas
-- Required/optional field definitions
-- Nested request body support
+- Required and optional fields
+- Nested request bodies
 - Parameter-location metadata
-- Deprecated endpoint filtering
-- Collision and ambiguous-name reporting
+- Deprecated-operation filtering
 
 ### Enterprise Security by Default
 
-Safe behavior is the default:
+MCPForge uses a fail-closed security model:
 
-- `GET`, `HEAD`, and `OPTIONS` may be exposed for read operations.
-- `POST`, `PUT`, and `PATCH` require explicit write enablement.
-- `DELETE` requires explicit delete enablement.
-- Private, loopback, and link-local addresses are blocked.
-- DNS resolutions are checked before and where possible during connection.
-- Redirect targets are subject to the same network policy.
-- `allowed_hosts` can restrict requests to explicit hostnames.
-- Literal credentials are rejected from project configuration.
-- Secrets are resolved only when a request is executed.
-- Authorization, API keys, cookies, and static headers are redacted recursively.
+- `GET`, `HEAD`, and `OPTIONS` are read operations.
+- `POST`, `PUT`, and `PATCH` require explicit write permission.
+- `DELETE` requires separate explicit permission.
+- Loopback, private, reserved, multicast, unspecified, and link-local
+  destinations are blocked by default.
+- DNS results are validated before network execution.
+- Redirect destinations must satisfy the same host and network rules.
+- `allowed_hosts` supports exact host enforcement.
+- Literal credential values are rejected.
+- Secrets are resolved only at runtime.
+- Sensitive values are recursively redacted from logs and diagnostics.
+- `max_response_bytes` prevents oversized upstream payloads from entering an
+  AI context window.
 
-### Zero-Leak Authentication
+### Runtime Authentication
 
-MCPForge supports:
+Supported authentication methods:
 
 - Bearer tokens
-- API keys in custom headers
+- API keys in headers
 - API keys in query parameters
 - HTTP Basic authentication
 - Custom static headers
-- Environment-variable-only runtime resolution
 
-Credentials are not included in:
+Secrets are referenced through environment variables:
 
-- YAML specifications
-- Tool descriptions
-- MCP schemas
-- Terminal logs
-- Debug messages
-- HTTP exception text
-- Structured API errors
-- AI-visible tool responses
+~~~yaml
+auth:
+  type: bearer
+  token:
+    env: MCPFORGE_API_TOKEN
+    required: true
+~~~
+
+The AI model receives tool metadata and schemas, never the underlying credential
+values.
 
 ### Resilient Async Execution
 
-The execution engine uses:
+The execution engine provides:
 
-- A shared, lifecycle-managed `httpx.AsyncClient`
-- Configurable connect and read timeouts
-- Optional transient retry policies
+- Shared lifecycle-managed `httpx.AsyncClient`
+- Configurable timeouts
+- TLS verification
+- Bounded retries
 - Exponential backoff
-- Configurable maximum attempts
-- TLS verification controls
-- Redirect handling
-- JSON body construction
-- Query, path, header, and cookie mapping
-- Maximum response payload limits
-- Structured HTTP and network errors
-
-Examples of normalized failure categories include:
-
-- `validation_error`
-- `authentication_failed`
-- `authorization_failed`
-- `not_found`
-- `rate_limited`
-- `upstream_unavailable`
-- `timeout`
-- `network_error`
-- `invalid_json`
-- `response_too_large`
-- `host_blocked`
-- `retry_exhausted`
+- Path, query, header, cookie, and body mapping
+- Structured HTTP errors
+- Invalid JSON detection
+- Request and response payload limits
+- Redacted diagnostics
+- Runtime authentication injection
 
 ### Dual MCP Transports
 
-MCPForge is designed for both local and remote usage:
+MCPForge supports:
 
-- **stdio:** ideal for Claude Desktop, Cursor, Windsurf, and local VS Code MCP clients
-- **streamable-http:** suitable for remote deployments and centrally managed MCP gateways
+- **`stdio`** for Claude Desktop, Cursor, Windsurf, and local VS Code usage.
+- **`streamable-http`** for remote deployments and shared MCP gateways.
 
-The MCP SDK remains isolated behind an adapter layer. The domain model, tool
-generator, authentication providers, and HTTP execution engine never depend on
-SDK-specific classes.
+The official MCP SDK is isolated inside `src/mcpforge/mcp/`, protecting the
+domain, ingestion, generation, and execution layers from SDK-specific changes.
 
 ---
 
 ## System Architecture
 
-```text
-┌──────────────────────────────────────────────────────────────────────┐
-│                          MCPForge Pipeline                           │
-└──────────────────────────────────────────────────────────────────────┘
+~~~text
+┌──────────────────────────────────────────────────────────────────────────┐
+│                              MCPForge                                    │
+└──────────────────────────────────────────────────────────────────────────┘
 
- OpenAPI 3.x ──┐
- Swagger 2.0 ──┼──> Source Loaders
- Manual YAML ──┘       │
-                       v
- ┌─────────────────────────────────────────────────────────────────────┐
- │ Local / Remote Ingestion + Format Detection + Schema Normalization  │
- └─────────────────────────────────────────────────────────────────────┘
-                       │
-                       v
- ┌─────────────────────────────────────────────────────────────────────┐
- │                    Unified Pydantic Domain Model                    │
- │ ApiDocument -> Endpoint -> Parameter -> RequestBody -> Responses   │
- └─────────────────────────────────────────────────────────────────────┘
-                       │
-                       v
- ┌─────────────────────────────────────────────────────────────────────┐
- │ Filter + Deprecated + Tag + Path + Method + Safety Policies        │
- └─────────────────────────────────────────────────────────────────────┘
-                       │
-                       v
- ┌─────────────────────────────────────────────────────────────────────┐
- │ Tool Generation: Naming, Overrides, Collisions, Input JSON Schemas  │
- └─────────────────────────────────────────────────────────────────────┘
-                       │
-                       v
- ┌─────────────────────────────────────────────────────────────────────┐
- │ MCP SDK Adapter + Stdio or Streamable HTTP Transport               │
- └─────────────────────────────────────────────────────────────────────┘
-                       │
-                       v
- ┌─────────────────────────────────────────────────────────────────────┐
- │ Argument Mapping -> Authentication -> SSRF -> HTTP Retry / Limits  │
- └─────────────────────────────────────────────────────────────────────┘
-                       │
-                       v
-                   Upstream REST API
-```
+ OpenAPI 3.0/3.1 ─┐
+ Swagger 2.0      ├──> Local / Remote Source Loaders
+ Manual YAML      ┘
+                              |
+                              v
+                 Format Detection and Parsing
+                              |
+                              v
+┌──────────────────────────────────────────────────────────────────────────┐
+│                     Normalized Pydantic Domain Model                     │
+│ ApiDocument -> Endpoint -> Parameter -> RequestBody -> Responses         │
+└──────────────────────────────────────────────────────────────────────────┘
+                              |
+                              v
+                 Filtering and Safety Policies
+                              |
+                              v
+              Deterministic MCP Tool Generation
+                              |
+                              v
+                   Official MCP SDK Adapter
+                              |
+                    +---------+---------+
+                    |                   |
+                    v                   v
+                 stdio          streamable-http
+                    |                   |
+                    +---------+---------+
+                              |
+                              v
+     Argument Mapping -> Auth -> DNS/SSRF -> HTTPX -> Error Normalization
+                              |
+                              v
+                       Upstream REST API
+~~~
 
-### Module Responsibilities
+### Internal Modules
 
 | Module | Responsibility |
 |---|---|
-| `domain` | Pure Pydantic contracts shared by all internal modules |
-| `config` | YAML/JSON loading, merging, validation, and environment references |
-| `ingestion` | Source loading, format detection, parsing, and normalization |
-| `filtering` | Endpoint allowlists, blocklists, tags, methods, and deprecated handling |
-| `generation` | Tool names, descriptions, JSON schemas, and collision resolution |
-| `auth` | Environment-backed authentication providers and credential resolution |
-| `execution` | HTTP request construction, retries, response parsing, and normalized errors |
-| `security` | Operation safety, SSRF protection, host policy, validation, and redaction |
-| `mcp` | MCP SDK adapter and both transport implementations |
-| `runtime` | Dependency composition and shared application lifecycle |
-| `observability` | Redacted structured logging and diagnostics |
-| `cli` | Terminal commands, argument handling, and Rich output |
+| `domain` | Framework-independent Pydantic contracts |
+| `config` | YAML/JSON configuration, merging, validation, and env references |
+| `ingestion` | File/URL loading, format detection, parsing, and normalization |
+| `filtering` | Path, tag, method, deprecation, and operation safety filters |
+| `generation` | Tool names, descriptions, collisions, and input schemas |
+| `auth` | Runtime environment-backed authentication providers |
+| `execution` | Async HTTP requests, retries, limits, and error normalization |
+| `security` | Safety, host policy, DNS checks, SSRF defense, and redaction |
+| `mcp` | Official MCP SDK adapter and transports |
+| `runtime` | Dependency composition and resource lifecycle |
+| `observability` | Structured events, redacted logs, and diagnostics |
+| `cli` | Typer commands and Rich terminal output |
 
-The dependency direction remains one-way:
+### Dependency Direction
 
-```text
-cli -> runtime -> generation/filtering/execution
-                       |
-                       v
-config -> ingestion -> domain
-security -----------------^
-mcp ----------------------^
-```
+~~~text
+cli
+ |
+ v
+runtime
+ |
+ +--> ingestion ------+
+ +--> filtering ------+--> domain
+ +--> generation ----+
+ +--> execution -----+
+ +--> security ------+
+ +--> mcp adapter ---+
+~~~
 
-The `domain` package must not import Typer, Rich, HTTPX, PyYAML, or the MCP SDK.
+The `domain` package remains independent of Typer, Rich, HTTPX, PyYAML, and the
+MCP SDK. Only the MCP adapter imports the official MCP SDK.
 
 ---
 
 ## Installation
 
-### Requirements
+### Install the published PyPI package
 
-- Python 3.11 or newer
-- An MCP-compatible client for local usage
-- Network access to the upstream API, if remote API testing is required
+~~~bash
+python -m pip install openapi-mcpforge
+~~~
 
-### Install with pip
+Verify the CLI:
 
-```bash
-python -m pip install mcpforge
-```
-
-For an isolated environment:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install mcpforge
+~~~bash
+mcpforge --version
 mcpforge --help
-```
+~~~
 
-On Windows:
+### Install with `uv`
 
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install mcpforge
+~~~bash
+uv tool install openapi-mcpforge
 mcpforge --help
-```
-
-### Install with uv
-
-```bash
-uv tool install mcpforge
-mcpforge --help
-```
+~~~
 
 For a project environment:
 
-```bash
+~~~bash
 uv venv
 source .venv/bin/activate
-uv pip install mcpforge
-```
+uv pip install openapi-mcpforge
+~~~
 
-### Install from source
+### Install from GitHub source
 
-```bash
+~~~bash
 git clone https://github.com/AshishVail/mcpforge.git
 cd mcpforge
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
-```
+~~~
 
-Verify the installation:
+### Install the `v0.1.0` source release
 
-```bash
-mcpforge --version
-mcpforge --help
-```
+~~~bash
+git clone --branch v0.1.0 https://github.com/AshishVail/mcpforge.git
+cd mcpforge
+python -m pip install -e ".[dev]"
+~~~
 
 ---
 
@@ -425,139 +463,185 @@ mcpforge --help
 
 ### 1. Create a project
 
-```bash
-mkdir inventory-api && cd inventory-api
+~~~bash
+mkdir inventory-api
+cd inventory-api
 mcpforge init
-```
+~~~
 
-This creates a starter `mcpforge.yaml` and supporting environment template.
+### 2. Import an API specification
 
-### 2. Add environment-backed secrets
-
-```bash
-cp .env.example .env
-export MCPFORGE_API_TOKEN="replace-with-your-token"
-```
-
-Never paste a token directly into `mcpforge.yaml`.
-
-### 3. Import an API specification
-
-Remote URL:
-
-```bash
+~~~bash
 mcpforge import https://api.example.com/openapi.json
-```
+~~~
 
-Local file:
+Or use a local file:
 
-```bash
+~~~bash
 mcpforge import ./openapi.yaml
-```
+~~~
 
-Swagger 2.0:
+### 3. Inspect generated tools
 
-```bash
-mcpforge import ./swagger.yaml --format swagger
-```
-
-Manual configuration:
-
-```bash
-mcpforge import ./mcpforge.yaml --format manual
-```
-
-### 4. Inspect the generated tools
-
-```bash
+~~~bash
 mcpforge inspect
-```
+~~~
 
-Example output:
+Example:
 
-```text
-┌───────┬────────────────────────┬───────────────┬──────────────┐
-│ Method│ Path                   │ Tool Name     │ Safety       │
-├───────┼────────────────────────┼───────────────┼──────────────┤
-│ GET   │ /users/{id}            │ get_user      │ read         │
-│ GET   │ /users                 │ list_users    │ read         │
-│ POST  │ /orders                │ create_order  │ write        │
-└───────┴────────────────────────┴───────────────┴──────────────┘
-```
+~~~text
+┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Method ┃ Path             ┃ Tool         ┃ Safety ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ GET    │ /users           │ list_user    │ read   │
+│ GET    │ /users/{id}      │ get_user     │ read   │
+└────────┴──────────────────┴──────────────┴────────┘
+~~~
 
-### 5. Validate configuration and security
+### 4. Validate configuration and policies
 
-```bash
+~~~bash
 mcpforge validate
-```
+~~~
 
-The validation pass checks:
+### 5. Test connectivity
 
-- YAML/JSON syntax
-- Pydantic configuration models
-- Source availability
-- Schema validity
-- Authentication references
-- Write/delete policy
-- Deprecated operations
-- Host and SSRF policy
-- Tool-name collisions
-- Required environment variables
-
-### 6. Test upstream connectivity
-
-```bash
+~~~bash
 mcpforge test
-```
+~~~
+
+### 6. Start a local MCP server
+
+~~~bash
+mcpforge serve --transport stdio
+~~~
+
+### 7. Start a remote server
+
+~~~bash
+mcpforge serve \
+  --transport streamable-http \
+  --host 127.0.0.1 \
+  --port 8080
+~~~
+
+### One-command workflow
+
+~~~bash
+mcpforge run ./openapi.yaml
+~~~
+
+---
+
+## Live Verification and Release Proof
+
+MCPForge `v0.1.0` has been released on GitHub and the project quality gates are
+configured and verified for:
+
+- Ruff linting
+- Ruff formatting checks
+- Strict mypy type checking
+- pytest unit and integration tests
+- Python 3.11 and 3.12 CI coverage
+
+Release links:
+
+- [GitHub Release v0.1.0](https://github.com/AshishVail/mcpforge/releases/tag/v0.1.0)
+- [PyPI: openapi-mcpforge](https://pypi.org/project/openapi-mcpforge/)
+
+### Install from PyPI
+
+~~~bash
+python -m pip install openapi-mcpforge
+mcpforge --help
+~~~
+
+### Live JSONPlaceholder test
+
+The live connectivity workflow requires an explicit `source.base_url`. The
+specification describes the operation path, while `source.base_url` identifies
+the actual upstream API origin.
+
+Example configuration:
+
+~~~yaml
+name: jsonplaceholder
+
+source:
+  location: ./jsonplaceholder.yaml
+  format: manual
+  base_url: https://jsonplaceholder.typicode.com
+
+auth:
+  type: none
+
+filters:
+  methods:
+    - GET
+
+security:
+  allow_write_operations: false
+  allow_delete_operations: false
+  allowed_hosts:
+    - jsonplaceholder.typicode.com
+  block_private_networks: true
+  max_response_bytes: 5000000
+
+http:
+  timeout_seconds: 30
+  verify_tls: true
+  retry:
+    max_attempts: 3
+    backoff_seconds: 0.5
+~~~
+
+Manual operation:
+
+~~~yaml
+name: JSONPlaceholder API
+version: "1.0.0"
+base_url: https://jsonplaceholder.typicode.com
+
+endpoints:
+  - operation_id: get_todo
+    method: GET
+    path: /todos/1
+    summary: Get todo 1
+    responses:
+      - status_code: 200
+        description: Todo object
+~~~
+
+Run the live test:
+
+~~~bash
+mcpforge test \
+  --config ./mcpforge.yaml \
+  --operation get_todo
+~~~
 
 Expected output:
 
-```text
-✓ Configuration loaded
-✓ Authentication resolved
-✓ API host allowed
-✓ Connectivity successful
-✓ Upstream returned a valid response
-```
+~~~text
+✓ Connectivity successful: status 200
+~~~
 
-### 7. Start a local MCP server
+This verifies the complete path:
 
-```bash
-mcpforge serve --transport stdio
-```
+~~~text
+Configuration
+    -> Manual specification ingestion
+    -> Endpoint filtering
+    -> Tool/endpoint selection
+    -> Base URL resolution
+    -> Host and SSRF checks
+    -> HTTPX request
+    -> Live JSON response
+    -> Normalized success result
+~~~
 
-To start the remote HTTP transport:
-
-```bash
-mcpforge serve --transport streamable-http --host 127.0.0.1 --port 8080
-```
-
-Streamable HTTP endpoint:
-
-```text
-http://127.0.0.1:8080/mcp
-```
-
-### 8. Use the one-command workflow
-
-```bash
-mcpforge run ./openapi.yaml
-```
-
-With remote OpenAPI:
-
-```bash
-mcpforge run https://api.example.com/openapi.json --transport stdio
-```
-
-With HTTP transport:
-
-```bash
-mcpforge run ./openapi.yaml \
-  --transport streamable-http \
-  --host 0.0.0.0 \
-  --port 8080
-```
+Live tests should be used responsibly. Public APIs may change, rate-limit
+requests, or impose their own terms of use.
 
 ---
 
@@ -565,177 +649,181 @@ mcpforge run ./openapi.yaml \
 
 ### `mcpforge init`
 
-Scaffold a new MCPForge project.
+Create a starter project:
 
-```bash
+~~~bash
 mcpforge init
 mcpforge init ./my-api
-mcpforge init --force
-mcpforge init --with-example
-```
+mcpforge init ./my-api --with-example
+mcpforge init ./my-api --without-example
+mcpforge init ./my-api --force
+~~~
+
+Options:
 
 | Option | Description |
 |---|---|
 | `PATH` | Target project directory |
-| `--force` | Replace existing project files after confirmation |
-| `--with-example` | Include an example OpenAPI and environment file |
-| `--config-name TEXT` | Custom configuration filename |
-
-Creates:
-
-```text
-my-api/
-├── mcpforge.yaml
-├── .env.example
-└── examples/
-    └── petstore.openapi.yaml
-```
+| `--force` | Overwrite generated files |
+| `--with-example` | Include an example specification |
+| `--without-example` | Omit the example specification |
 
 ### `mcpforge import`
 
-Load and normalize an API specification.
+Load and normalize a specification:
 
-```bash
+~~~bash
 mcpforge import ./openapi.yaml
-mcpforge import ./swagger.json --format swagger
+mcpforge import ./swagger.yaml --format swagger
+mcpforge import ./mcpforge.yaml --format manual
 mcpforge import https://api.example.com/openapi.json
-mcpforge import ./manual.yaml --format manual --save
-```
+~~~
+
+Options:
 
 | Option | Description |
 |---|---|
-| `<source>` | Local path or remote URL |
-| `--format [openapi|swagger|manual]` | Explicit source format |
-| `--save / --no-save` | Persist normalized project metadata |
-| `--base-url TEXT` | Override a specification's server URL |
-| `--config PATH` | Use a specific project configuration |
+| `SOURCE` | Local path or HTTP(S) URL |
+| `--format` | `openapi`, `swagger`, or `manual` |
+| `--timeout` | Remote source timeout in seconds |
 
 ### `mcpforge inspect`
 
-Display discovered endpoints and generated tool names.
+Display generated tools:
 
-```bash
+~~~bash
 mcpforge inspect
-mcpforge inspect --methods GET
-mcpforge inspect --tag users
-mcpforge inspect --include-deprecated
+mcpforge inspect --config ./mcpforge.yaml
+mcpforge inspect --format table
 mcpforge inspect --format json
-```
+~~~
+
+Options:
 
 | Option | Description |
 |---|---|
-| `--methods TEXT` | Filter by comma-separated HTTP methods |
-| `--tag TEXT` | Filter by operation tag |
-| `--path TEXT` | Filter by path substring or pattern |
-| `--include-deprecated` | Include deprecated operations |
-| `--format [table|json]` | Select Rich table or JSON output |
+| `--config` | Project configuration path |
+| `--format` | `table` or `json` |
 
 ### `mcpforge validate`
 
-Validate configuration, specifications, schemas, auth references, and security policy.
+Validate configuration, ingestion, filtering, and generation:
 
-```bash
+~~~bash
 mcpforge validate
+mcpforge validate --config ./mcpforge.yaml
 mcpforge validate --strict
-mcpforge validate --config ./config/mcpforge.yaml
-mcpforge validate --source ./openapi.yaml
-```
+~~~
 
-| Option | Description |
-|---|---|
-| `--strict` | Treat warnings as validation failures |
-| `--config PATH` | Validate a specific configuration |
-| `--source PATH_OR_URL` | Validate a specific API source |
-| `--show-secrets` | Never available; secret values are intentionally not rendered |
+Validation includes:
+
+- Configuration syntax
+- Pydantic model validation
+- Source format detection
+- Local reference resolution
+- Endpoint safety
+- Host allowlists
+- Tool generation
+- Authentication reference structure
 
 ### `mcpforge test`
 
-Verify API connectivity and authentication.
+Test upstream connectivity:
 
-```bash
+~~~bash
 mcpforge test
-mcpforge test --operation get_users
-mcpforge test --operation get_user --param id=123
-mcpforge test --timeout 15
-mcpforge test --dry-run
-```
+mcpforge test --config ./mcpforge.yaml
+mcpforge test --operation get_todo
+mcpforge test --operation get_todo --dry-run
+~~~
+
+Options:
 
 | Option | Description |
 |---|---|
-| `--operation TEXT` | Invoke a specific endpoint |
-| `--param KEY=VALUE` | Supply endpoint test parameters |
-| `--timeout FLOAT` | Override HTTP timeout |
-| `--dry-run` | Resolve configuration and auth without sending the request |
-| `--verbose` | Show redacted request diagnostics |
+| `--config` | Project configuration path |
+| `--operation` | Operation ID or endpoint path |
+| `--dry-run` | Validate selection without sending a request |
 
 ### `mcpforge serve`
 
-Launch the MCP server.
+Start an MCP server:
 
-```bash
+~~~bash
 mcpforge serve --transport stdio
-mcpforge serve --transport streamable-http --host 127.0.0.1 --port 8080
-mcpforge serve --config ./mcpforge.yaml --log-level debug
-```
+mcpforge serve \
+  --transport streamable-http \
+  --host 127.0.0.1 \
+  --port 8080
+~~~
+
+Options:
 
 | Option | Description |
 |---|---|
-| `--transport [stdio|streamable-http]` | MCP transport |
-| `--host TEXT` | HTTP bind host |
-| `--port INTEGER` | HTTP listen port |
-| `--config PATH` | Project configuration file |
-| `--log-level [debug|info|warning|error]` | Redacted runtime log level |
+| `--config` | Project configuration path |
+| `--transport` | `stdio` or `streamable-http` |
+| `--host` | HTTP bind host |
+| `--port` | HTTP bind port |
 
 ### `mcpforge run`
 
-Import, validate, generate, and serve in one command.
+Run the complete pipeline:
 
-```bash
+~~~bash
 mcpforge run ./openapi.yaml
-mcpforge run https://api.example.com/openapi.yaml --transport stdio
-mcpforge run ./openapi.yaml --allow-write
-mcpforge run ./openapi.yaml --allow-delete
-mcpforge run ./openapi.yaml --transport streamable-http --port 8080
-```
+mcpforge run --config ./mcpforge.yaml
+mcpforge run --transport stdio
+mcpforge run \
+  --config ./mcpforge.yaml \
+  --transport streamable-http \
+  --host 0.0.0.0 \
+  --port 8080
+~~~
 
-| Option | Description |
-|---|---|
-| `<source>` | API specification or manual configuration |
-| `--transport [stdio|streamable-http]` | MCP transport |
-| `--host TEXT` | HTTP bind host |
-| `--port INTEGER` | HTTP listen port |
-| `--allow-write` | Explicitly enable write operations |
-| `--allow-delete` | Explicitly enable delete operations |
-| `--include-deprecated` | Include deprecated endpoints |
-| `--config PATH` | Project configuration file |
+The command composes:
 
-### Global behavior
-
-Every command should fail closed if:
-
-- Authentication secrets are missing.
-- Configuration contains literal credentials.
-- A source cannot be safely loaded.
-- Host policy rules conflict with the source host.
-- Write or delete operations are enabled without explicit intent.
-- A private or loopback host is discovered.
-- The resolved DNS answer is prohibited.
-- A tool schema is ambiguous or invalid.
+~~~text
+Load configuration
+    -> Ingest source
+    -> Filter endpoints
+    -> Generate tools
+    -> Create MCP adapter
+    -> Start selected transport
+~~~
 
 ---
 
-## Configuration and Manual API Specs
+## Configuration Guide
 
-### Complete `mcpforge.yaml` example
+MCPForge uses `mcpforge.yaml` or equivalent JSON.
 
-```yaml
+### Minimal configuration
+
+~~~yaml
+source:
+  location: ./openapi.yaml
+~~~
+
+The default behavior is intentionally conservative:
+
+- Read operations are enabled.
+- Write operations are disabled.
+- Delete operations are disabled.
+- Private-network access is blocked.
+- TLS verification is enabled.
+- Secrets must use environment-variable references.
+
+### Complete configuration
+
+~~~yaml
 name: inventory-api
 
 source:
   location: https://api.example.com/openapi.json
   format: openapi
   base_url: https://api.example.com
-  timeout_seconds: 30.0
+  timeout_seconds: 30
 
 auth:
   type: bearer
@@ -746,15 +834,14 @@ auth:
 filters:
   include_paths:
     - /users
-    - /users/{id}
+    - /users/*
     - /orders
-    - /orders/{id}
   exclude_paths:
-    - /internal/*
     - /admin/*
+    - /internal/*
   include_tags:
-    - Inventory
-    - Orders
+    - Public
+    - Users
   exclude_tags:
     - Internal
   methods:
@@ -771,34 +858,26 @@ security:
   max_response_bytes: 5000000
 
 http:
-  timeout_seconds: 30.0
+  timeout_seconds: 30
   verify_tls: true
   retry:
     max_attempts: 3
     backoff_seconds: 0.5
-```
+~~~
 
 ### Bearer authentication
 
-```yaml
+~~~yaml
 auth:
   type: bearer
   token:
     env: MCPFORGE_API_TOKEN
     required: true
-```
-
-Do not use:
-
-```yaml
-auth:
-  type: bearer
-  token: sk-live-hardcoded-secret
-```
+~~~
 
 ### API key in a header
 
-```yaml
+~~~yaml
 auth:
   type: api_key
   name: X-API-Key
@@ -806,11 +885,11 @@ auth:
   value:
     env: MCPFORGE_API_KEY
     required: true
-```
+~~~
 
 ### API key in a query parameter
 
-```yaml
+~~~yaml
 auth:
   type: api_key
   name: api_key
@@ -818,11 +897,11 @@ auth:
   value:
     env: MCPFORGE_API_KEY
     required: true
-```
+~~~
 
 ### Basic authentication
 
-```yaml
+~~~yaml
 auth:
   type: basic
   username:
@@ -831,11 +910,11 @@ auth:
   password:
     env: MCPFORGE_API_PASSWORD
     required: true
-```
+~~~
 
-### Custom static headers
+### Static headers
 
-```yaml
+~~~yaml
 auth:
   type: static_headers
   headers:
@@ -846,44 +925,114 @@ auth:
       env: MCPFORGE_CLIENT_VERSION
       required: false
       default: "1.0"
-```
+~~~
 
-### Manual API specification
+### Environment-only secrets
 
-MCPForge supports manual YAML when no OpenAPI specification is available:
+Valid:
 
-```yaml
+~~~yaml
+token:
+  env: MCPFORGE_API_TOKEN
+~~~
+
+Invalid:
+
+~~~yaml
+token: "hardcoded-production-token"
+~~~
+
+The invalid form is rejected. Never commit real tokens to Git.
+
+### Endpoint filters
+
+~~~yaml
+filters:
+  include_paths:
+    - /users
+    - /users/*
+  exclude_paths:
+    - /admin/*
+  include_tags:
+    - Public
+  exclude_tags:
+    - Internal
+  methods:
+    - GET
+  include_deprecated: false
+~~~
+
+Filtering precedence:
+
+1. Excluded paths and tags always win.
+2. Configured include paths act as an allowlist.
+3. Configured include tags act as an allowlist.
+4. Configured methods restrict the allowed methods.
+5. Deprecated endpoints remain excluded unless enabled.
+6. Operation safety policy is evaluated after selectors.
+
+### Operation safety
+
+~~~yaml
+security:
+  allow_write_operations: false
+  allow_delete_operations: false
+~~~
+
+Enabling writes does not enable deletes:
+
+~~~yaml
+security:
+  allow_write_operations: true
+  allow_delete_operations: false
+~~~
+
+### Tool overrides
+
+Tool override configuration can rename or describe generated tools:
+
+~~~yaml
+tool_overrides:
+  get_user:
+    name: fetch_user_profile
+    description: Fetch a user profile by identifier.
+  delete_user:
+    enabled: false
+~~~
+
+Overrides must not contain credentials.
+
+---
+
+## Manual API Specifications
+
+Manual YAML is useful when an API has no OpenAPI document.
+
+~~~yaml
 name: Inventory API
 version: "1.0.0"
-base_url: https://api.example.com
+base_url: https://inventory.example.com
 
 endpoints:
-  - operation_id: list_products
+  - operation_id: list_items
     method: GET
-    path: /products
-    summary: List products
-    description: Returns a paginated product catalog.
+    path: /items
+    summary: List inventory items
     tags:
       - Inventory
     parameters:
       - name: limit
         location: query
         required: false
-        description: Maximum number of products to return.
         schema:
           type: integer
           minimum: 1
           maximum: 100
           default: 20
-      - name: cursor
-        location: query
-        required: false
-        schema:
-          type: string
     responses:
       - status_code: 200
+        description: Inventory items
         content_type: application/json
-        description: Product page
         schema:
           type: object
           properties:
@@ -891,88 +1040,70 @@ endpoints:
               type: array
               items:
                 type: object
-            next_cursor:
-              type: string
-              nullable: true
 
-  - operation_id: get_product
+  - operation_id: get_item
     method: GET
-    path: /products/{product_id}
-    tags:
-      - Inventory
+    path: /items/{item_id}
+    summary: Get an inventory item
     parameters:
-      - name: product_id
+      - name: item_id
         location: path
         required: true
-        description: Product identifier.
         schema:
           type: string
     responses:
       - status_code: 200
-        content_type: application/json
-        description: Product found
+        description: Inventory item
       - status_code: 404
-        description: Product not found
-```
+        description: Item not found
+~~~
 
-Manual request bodies use a JSON Schema-like structure:
+Manual request body:
 
-```yaml
-  - operation_id: create_product
+~~~yaml
+  - operation_id: create_item
     method: POST
-    path: /products
-    tags:
-      - Inventory
+    path: /items
     request_body:
       required: true
-      content_type: application/json
-      schema:
-        type: object
-        required:
-          - name
-          - price
-        properties:
-          name:
-            type: string
-            min_length: 1
-          price:
-            type: number
-            minimum: 0
-          category:
-            type: string
-            enum:
-              - physical
-              - digital
-```
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+              price:
+                type: number
+                minimum: 0
+    responses:
+      - status_code: 201
+        description: Item created
+~~~
 
-### Tool override example
-
-```yaml
-tool_overrides:
-  get_product:
-    name: fetch_inventory_product
-    description: Fetch a product by its unique inventory identifier.
-  delete_product:
-    enabled: false
-```
-
-Tool overrides must not contain credentials or expose secret values.
+Manual specifications are converted into the same `ApiDocument` model used by
+OpenAPI and Swagger.
 
 ---
 
-## Connecting to AI Clients
+## Connecting AI Clients
 
-Set secrets in the environment that launches your MCP client process.
+Set environment variables in the process environment used to launch the MCP
+client:
 
-```bash
+~~~bash
 export MCPFORGE_API_TOKEN="your-token"
-```
+~~~
+
+Do not place production tokens directly into client configuration JSON.
 
 ### Claude Desktop
 
-Edit `claude_desktop_config.json`:
+`claude_desktop_config.json`:
 
-```json
+~~~json
 {
   "mcpServers": {
     "mcpforge": {
@@ -985,28 +1116,24 @@ Edit `claude_desktop_config.json`:
         "/absolute/path/to/mcpforge.yaml"
       ],
       "env": {
-        "MCPFORGE_API_TOKEN": "not-recommended-to-place-a-token-here"
+        "MCPFORGE_API_TOKEN": "${MCPFORGE_API_TOKEN}"
       }
     }
   }
 }
-```
+~~~
 
-Prefer resolving secrets through Claude Desktop's environment or a system-level
-secret manager. MCPForge can read `MCPFORGE_API_TOKEN` directly from the process
-environment.
-
-Claude Desktop locations:
+Typical locations:
 
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-- Linux: varies by MCP host configuration
+- Linux: depends on the client installation
 
-### Cursor IDE
+### Cursor
 
-Create or update `.cursor/mcp.json`:
+`.cursor/mcp.json`:
 
-```json
+~~~json
 {
   "mcpServers": {
     "mcpforge": {
@@ -1024,13 +1151,13 @@ Create or update `.cursor/mcp.json`:
     }
   }
 }
-```
+~~~
 
 ### VS Code
 
-VS Code MCP configurations commonly use a `.vscode/mcp.json` file:
+`.vscode/mcp.json`:
 
-```json
+~~~json
 {
   "servers": {
     "mcpforge": {
@@ -1049,16 +1176,13 @@ VS Code MCP configurations commonly use a `.vscode/mcp.json` file:
     }
   }
 }
-```
-
-Use the MCP configuration interface in VS Code if your installed version supports
-workspace variable substitution or environment expansion.
+~~~
 
 ### Windsurf
 
-Add a project or user MCP configuration in the Windsurf MCP settings:
+Use the Windsurf MCP configuration:
 
-```json
+~~~json
 {
   "mcpServers": {
     "mcpforge": {
@@ -1076,27 +1200,30 @@ Add a project or user MCP configuration in the Windsurf MCP settings:
     }
   }
 }
-```
+~~~
 
-Use an absolute configuration path if the MCP host process does not inherit the
-project working directory.
+### Streamable HTTP
 
-### Streamable HTTP Remote Server
+Start MCPForge:
 
-Start the server:
-
-```bash
-MCPFORGE_API_TOKEN="your-token" \
+~~~bash
+MCPFORGE_API_TOKEN="$MCPFORGE_API_TOKEN" \
 mcpforge serve \
   --transport streamable-http \
   --host 0.0.0.0 \
   --port 8080 \
   --config /srv/mcpforge/mcpforge.yaml
-```
+~~~
 
-Configure a compatible MCP client:
+A compatible client can connect to:
 
-```json
+~~~text
+https://mcp.example.com/mcp
+~~~
+
+Example remote configuration:
+
+~~~json
 {
   "mcpServers": {
     "inventory-api": {
@@ -1108,243 +1235,201 @@ Configure a compatible MCP client:
     }
   }
 }
-```
+~~~
 
-Production deployments should place MCPForge behind:
-
-- TLS termination
-- Authentication
-- Authorization
-- Rate limiting
-- Restricted network routing
-- Health monitoring
-- Centralized secret management
+For production, place the remote server behind TLS, authentication,
+authorization, rate limiting, and restricted network access.
 
 ---
 
 ## Security Model and Guardrails
 
-| Threat or Failure | MCPForge Protection |
+| Risk | Protection |
 |---|---|
-| Accidental deletion | `DELETE` operations remain disabled unless explicitly enabled |
-| Accidental writes | `POST`, `PUT`, and `PATCH` remain disabled unless configured |
-| SSRF to loopback | Loopback addresses such as `127.0.0.0/8` and `::1` are blocked |
-| SSRF to private networks | RFC1918 and equivalent private ranges are blocked by default |
-| Link-local access | Link-local IPv4/IPv6 ranges are blocked |
-| DNS rebinding | Resolved addresses are checked before execution and redirects |
-| Host allowlist bypass | Requests outside `allowed_hosts` are rejected |
-| Literal credentials | Configuration rejects credentials that are not environment references |
-| Logs exposing secrets | Recursive redaction removes tokens and authorization values |
-| MCP schema leakage | Credentials never become tool arguments or descriptions |
-| Context overflow | Maximum response bytes are enforced before AI delivery |
-| Invalid upstream JSON | Invalid JSON becomes a structured, recoverable error |
-| Token rotation | Secrets resolve at runtime instead of during import or generation |
-| Unbounded retries | Retry attempts are capped and backoff is configurable |
-| Slow upstream API | Connect and read timeouts prevent indefinite execution |
-| Redirect escape | Redirect hosts remain subject to allowed-host and SSRF policy |
+| Accidental deletion | `DELETE` disabled unless explicitly enabled |
+| Accidental writes | `POST`, `PUT`, and `PATCH` require write permission |
+| Loopback SSRF | Loopback IPv4/IPv6 destinations are blocked |
+| Private-network SSRF | Private RFC1918 ranges are blocked |
+| Link-local SSRF | Link-local addresses such as `169.254.0.0/16` are blocked |
+| DNS rebinding | Resolved addresses are checked before execution |
+| Redirect escape | Redirect targets must satisfy host and network policy |
+| Host bypass | Exact `allowed_hosts` enforcement |
+| Credential exposure | Secrets resolve only from environment variables |
+| Log leakage | Recursive redaction of sensitive fields and known values |
+| Context overflow | `max_response_bytes` limits upstream responses |
+| Infinite retries | Retry attempts are capped |
+| Slow upstream | Timeout settings bound request duration |
+| Invalid upstream JSON | Converted into structured `invalid_json` errors |
 | TLS interception | TLS verification is enabled by default |
-| Ambiguous tool names | Collision resolution produces deterministic names and warnings |
 
-### Operation Safety
+### Safety defaults
 
-Endpoint methods map to coarse safety categories:
-
-| Method | Default Safety |
+| Method | Default |
 |---|---|
-| `GET` | Read; enabled by default |
-| `HEAD` | Read; enabled by default |
-| `OPTIONS` | Read; enabled by default |
-| `POST` | Write; explicit opt-in |
-| `PUT` | Write; explicit opt-in |
-| `PATCH` | Write; explicit opt-in |
-| `DELETE` | Delete; explicit opt-in |
+| `GET` | Enabled |
+| `HEAD` | Enabled |
+| `OPTIONS` | Enabled |
+| `POST` | Disabled |
+| `PUT` | Disabled |
+| `PATCH` | Disabled |
+| `DELETE` | Disabled |
 
-A write-enabled project does not imply delete-enabled behavior. Both flags are
-evaluated independently.
+### SSRF and DNS validation
 
-### SSRF Defense
+Before an upstream call, MCPForge validates:
 
-Before creating an upstream request, MCPForge should validate:
+1. The URL uses HTTP or HTTPS.
+2. The URL includes a hostname.
+3. The hostname passes `allowed_hosts`, when configured.
+4. The hostname is not `localhost`.
+5. DNS results do not resolve to blocked address ranges.
+6. Redirect destinations remain subject to the same checks.
+7. The request does not exceed configured payload limits.
 
-1. The scheme is HTTP or HTTPS.
-2. The URL host matches `allowed_hosts`, where configured.
-3. The hostname can be resolved.
-4. Every resolved address is outside blocked ranges.
-5. Redirect targets pass the same checks.
-6. The selected connection cannot escape the validated address policy.
+### Secret redaction
 
-Private address detection is broad enough to include loopback, private, reserved,
-link-local, multicast, unspecified, carrier-grade NAT, and other special-purpose
-address families where applicable.
-
-### Secret Redaction
-
-Redaction applies recursively to:
-
-- Dictionaries
-- Lists
-- Nested error details
-- Exception messages
-- Header collections
-- Query logging
-- Diagnostic JSON
-- Terminal output
-
-Sensitive names include values associated with:
+Sensitive names include:
 
 - `authorization`
+- `proxy-authorization`
 - `cookie`
 - `set-cookie`
 - `token`
-- `api_key`
-- `api-key`
 - `password`
 - `secret`
+- `api_key`
+- `access_token`
+- `refresh_token`
 - `client_secret`
-- `access_key`
-- `session`
 
-Redacted values are replaced consistently rather than being returned to AI clients.
+Secrets are not placed into:
 
-### Response Size Protection
+- Tool names
+- Tool descriptions
+- Input schemas
+- MCP metadata
+- Error payloads
+- Diagnostic summaries
+- Terminal logs
 
-Every successful and error response is checked against `max_response_bytes`.
+### Payload protection
 
-A payload exceeding the limit should result in:
+Configure:
 
-```json
-{
-  "ok": false,
-  "error": {
-    "category": "response_too_large",
-    "message": "The upstream response exceeded the configured payload limit.",
-    "status_code": 200,
-    "retryable": false
-  }
-}
-```
+~~~yaml
+security:
+  max_response_bytes: 5000000
+~~~
 
-The raw oversized body must not be included in the response delivered to the AI.
+An oversized response is represented as a structured error rather than delivered
+to the AI model.
+
+### Deployment recommendations
+
+For remote deployments:
+
+- Use HTTPS.
+- Place the server behind an authenticated gateway.
+- Restrict inbound network access.
+- Use a secret manager.
+- Rotate credentials regularly.
+- Enable audit logging.
+- Apply external rate limiting.
+- Run with a dedicated least-privilege service account.
+- Keep MCP SDK and HTTP dependencies updated.
+- Review endpoint allowlists before enabling writes or deletes.
+
+MCPForge is a security layer, not a replacement for upstream API
+authorization. The upstream API must still enforce identity, permissions,
+tenant isolation, and business rules.
 
 ---
 
 ## Project Directory Structure
 
-```text
+~~~text
 mcpforge/
-├── pyproject.toml                 # Build, dependencies, scripts, and tool settings
+├── pyproject.toml                 # Build metadata and dependencies
 ├── README.md                      # Project documentation
 ├── LICENSE                        # MIT license
 ├── CHANGELOG.md                   # Release history
-├── Makefile                       # Common development commands
-├── .gitignore                     # Repository ignore rules
-├── .pre-commit-config.yaml        # Pre-commit quality hooks
+├── Makefile                       # Development shortcuts
+├── .gitignore                     # Ignore rules
+├── .pre-commit-config.yaml        # Formatting and type hooks
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml                 # Python 3.11/3.12 quality gates
 │
 ├── docs/
-│   ├── architecture.md            # Architecture and extension points
-│   ├── configuration.md           # Complete configuration reference
-│   ├── security.md                # Security guarantees and deployment guidance
+│   ├── architecture.md            # Architecture and boundaries
+│   ├── configuration.md           # Configuration reference
+│   ├── security.md                # Security model
 │   └── supported-specifications.md
 │
 ├── examples/
 │   ├── basic/
-│   │   ├── mcpforge.yaml          # Basic project configuration
+│   │   ├── mcpforge.yaml          # Basic runtime configuration
 │   │   └── .env.example           # Environment variable template
 │   └── openapi/
-│       └── petstore.yaml          # Example OpenAPI specification
+│       └── petstore.yaml          # Example OpenAPI document
 │
 ├── src/
 │   └── mcpforge/
-│       ├── __init__.py            # Package metadata and public exports
-│       ├── __main__.py            # `python -m mcpforge` entry point
-│
+│       ├── __init__.py
+│       ├── __main__.py
+│       │
 │       ├── cli/
-│       │   ├── app.py             # Typer application
-│       │   ├── context.py         # Shared CLI context
-│       │   ├── output.py          # Rich terminal rendering
+│       │   ├── app.py             # Typer root application
+│       │   ├── context.py         # CLI state
+│       │   ├── output.py          # Rich output
+│       │   ├── scaffold.py        # Project scaffolding
 │       │   └── commands/
-│       │       ├── init.py        # Project scaffolding
-│       │       ├── import_spec.py # API import
-│       │       ├── inspect.py     # Endpoint and tool inspection
-│       │       ├── validate.py    # Static validation
-│       │       ├── test.py        # Connectivity and auth testing
-│       │       ├── serve.py       # MCP server startup
-│       │       └── run.py         # One-command pipeline
-│
+│       │       ├── init.py
+│       │       ├── import_spec.py
+│       │       ├── inspect.py
+│       │       ├── validate.py
+│       │       ├── test.py
+│       │       ├── serve.py
+│       │       └── run.py
+│       │
 │       ├── config/
-│       │   ├── models.py          # Pydantic configuration models
-│       │   ├── loader.py          # YAML/JSON loading
-│       │   ├── merger.py          # Configuration precedence
-│       │   └── secrets.py         # Environment-backed secret resolution
-│
+│       │   ├── models.py
+│       │   ├── loader.py
+│       │   ├── merger.py
+│       │   └── secrets.py
+│       │
 │       ├── domain/
-│       │   ├── enums.py           # HTTP, parameter, auth, and safety enums
-│       │   ├── models.py          # ApiDocument and endpoint contracts
-│       │   ├── parameters.py      # Parameter helpers
-│       │   ├── schemas.py         # JSON schema aliases
-│       │   └── errors.py          # Domain exceptions
-│
+│       │   ├── enums.py
+│       │   ├── models.py
+│       │   ├── parameters.py
+│       │   ├── schemas.py
+│       │   └── errors.py
+│       │
 │       ├── ingestion/
-│       │   ├── service.py         # Format selection and ingestion workflow
-│       │   ├── source.py          # Source descriptors
-│       │   ├── loaders/           # Local and remote loading
-│       │   ├── parsers/           # OpenAPI, Swagger, and manual parsers
-│       │   └── normalization/     # Parser-specific conversion helpers
-│
+│       │   ├── source.py
+│       │   ├── service.py
+│       │   ├── errors.py
+│       │   ├── loaders/
+│       │   ├── parsers/
+│       │   └── normalization/
+│       │
 │       ├── filtering/
-│       │   ├── policies.py        # Read/write/delete and deprecation policies
-│       │   ├── selectors.py       # Path, tag, and method selectors
-│       │   └── evaluator.py       # Final endpoint inclusion decision
-│
 │       ├── generation/
-│       │   ├── models.py          # Generated ToolDefinition contracts
-│       │   ├── naming.py          # Deterministic snake_case naming
-│       │   ├── descriptions.py    # Tool descriptions
-│       │   ├── collisions.py      # Stable collision resolution
-│       │   ├── input_schema.py    # AI-facing JSON input schemas
-│       │   └── service.py         # Endpoint-to-tool generation
-│
 │       ├── auth/
-│       │   ├── models.py          # Authentication contracts
-│       │   ├── providers.py        # Bearer, API key, Basic, and static auth
-│       │   ├── resolver.py         # Runtime auth resolution
-│       │   └── redaction.py        # Auth-related secret scrubbing
-│
 │       ├── execution/
-│       │   ├── engine.py          # Request orchestration
-│       │   ├── client.py          # Shared AsyncClient lifecycle
-│       │   ├── request_builder.py # Path/query/header/body construction
-│       │   ├── retry.py           # Retry and backoff policy
-│       │   ├── response.py        # Response parsing
-│       │   ├── errors.py          # Structured HTTP failures
-│       │   └── limits.py          # Payload-size enforcement
-│
 │       ├── security/
-│       │   ├── safety.py          # Operation safety policy
-│       │   ├── ssrf.py            # DNS and private-network validation
-│       │   ├── hosts.py           # Allowed-host enforcement
-│       │   ├── validation.py      # Cross-cutting security validation
-│       │   └── redaction.py       # Recursive output/log redaction
-│
 │       ├── mcp/
-│       │   ├── adapter.py         # Internal-tool to MCP-SDK adapter
-│       │   ├── server.py          # MCP server creation
-│       │   ├── tools.py           # Tool callbacks
-│       │   ├── errors.py          # MCP-compatible errors
-│       │   └── transports.py      # stdio and streamable-http
-│
 │       ├── runtime/
-│       │   ├── application.py     # Dependency composition
-│       │   ├── lifecycle.py       # Startup and graceful shutdown
-│       │   └── dependencies.py    # Runtime dependency providers
-│
 │       └── observability/
-│           ├── logging.py         # Redacted logging
-│           ├── events.py          # Structured events
-│           └── diagnostics.py     # Safe diagnostics
 │
 └── tests/
     ├── conftest.py
+    ├── fixtures/
+    │   ├── openapi/
+    │   ├── swagger/
+    │   ├── manual/
+    │   └── responses/
     ├── unit/
     │   ├── domain/
     │   ├── config/
@@ -1352,186 +1437,460 @@ mcpforge/
     │   ├── filtering/
     │   ├── generation/
     │   ├── auth/
-    │   ├── execution/
     │   ├── security/
-    │   ├── mcp/
-    │   └── runtime/
-    ├── integration/
-    │   ├── ingestion/
     │   ├── execution/
-    │   └── server/
-    ├── fixtures/
-    │   ├── openapi/
-    │   ├── swagger/
-    │   ├── manual/
-    │   └── responses/
+    │   ├── mcp/
+    │   ├── runtime/
+    │   └── cli/
+    ├── integration/
+    │   ├── execution/
+    │   ├── server/
+    │   └── cli/
     └── e2e/
-```
+~~~
 
 ---
 
 ## Development and Quality Checks
 
-### Clone and install
+### Install development dependencies
 
-```bash
+~~~bash
 git clone https://github.com/AshishVail/mcpforge.git
 cd mcpforge
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
-```
+~~~
 
-### Run unit and integration tests
+### Run tests
 
-```bash
-pytest
-```
+~~~bash
+python -m pytest
+~~~
 
 With coverage:
 
-```bash
-pytest --cov=mcpforge --cov-report=term-missing --cov-report=html
-```
+~~~bash
+python -m pytest \
+  --cov=mcpforge \
+  --cov-report=term-missing \
+  --cov-report=html
+~~~
 
-Run a focused test directory:
+Run selected suites:
 
-```bash
-pytest tests/unit/generation
-pytest tests/integration/execution
-```
+~~~bash
+python -m pytest tests/unit
+python -m pytest tests/integration
+python -m pytest tests/e2e
+~~~
 
-### Run Ruff
+### Ruff
 
-```bash
-ruff check .
-ruff format --check .
-ruff format .
-ruff check --fix .
-```
+~~~bash
+python -m ruff check .
+python -m ruff format --check .
+~~~
 
-### Run mypy
+Format locally:
 
-```bash
-mypy src
-```
+~~~bash
+python -m ruff format .
+python -m ruff check --fix .
+~~~
 
-Strict typing is recommended for all pull requests.
+### mypy
 
-### Makefile targets
+~~~bash
+python -m mypy src
+~~~
 
-```bash
+The project uses strict type checking for production source code.
+
+### Makefile
+
+~~~bash
 make install
 make test
 make lint
 make typecheck
 make format
 make check
-```
+~~~
 
-Expected `make check` sequence:
+Recommended final check:
 
-```text
-ruff check .
-mypy src
-pytest
-```
+~~~bash
+make check
+~~~
 
-### Pre-commit hooks
+### Pre-commit
 
-```bash
+~~~bash
 python -m pip install pre-commit
 pre-commit install
 pre-commit run --all-files
-```
+~~~
 
-### Pull request checklist
+### CI
 
-Before submitting a pull request:
+GitHub Actions runs on Python 3.11 and 3.12:
 
-- [ ] Changes are covered by focused tests
-- [ ] Public models remain Pydantic v2-compatible
-- [ ] Domain code remains framework-independent
-- [ ] MCP SDK imports stay behind the adapter layer
-- [ ] Secrets are environment-backed
-- [ ] Logs and errors pass through redaction
-- [ ] SSRF and host-policy behavior is preserved
-- [ ] Write and delete operations remain opt-in
-- [ ] Ruff and mypy pass
-- [ ] Documentation reflects CLI behavior or configuration changes
+~~~text
+Ruff lint
+Ruff format check
+mypy
+pytest
+~~~
+
+Pull requests should keep all quality gates green.
+
+---
+
+## Troubleshooting and Common Gotchas
+
+### `source.base_url` is missing during `mcpforge test`
+
+The specification location is not necessarily the runtime API URL.
+
+For example, this source:
+
+~~~yaml
+source:
+  location: ./openapi.yaml
+~~~
+
+may describe paths without identifying the actual server. Add an explicit
+`base_url`:
+
+~~~yaml
+source:
+  location: ./openapi.yaml
+  format: openapi
+  base_url: https://api.example.com
+~~~
+
+For OpenAPI documents, `servers[0].url` may provide a base URL, but explicitly
+setting `source.base_url` makes runtime behavior clear and reliable.
+
+### PyPI package name collision
+
+Install the published package using:
+
+~~~bash
+python -m pip install openapi-mcpforge
+~~~
+
+Run the CLI using:
+
+~~~bash
+mcpforge --help
+~~~
+
+Do not try to install `mcpforge` from PyPI. The repository remains:
+
+~~~text
+https://github.com/AshishVail/mcpforge
+~~~
+
+If a package upload returns HTTP `400` because a distribution name already
+exists, verify that `pyproject.toml` uses:
+
+~~~toml
+[project]
+name = "openapi-mcpforge"
+~~~
+
+### PyPI upload with 2FA and API tokens
+
+For PyPI uploads, use an API token rather than a password:
+
+~~~bash
+export TWINE_USERNAME="__token__"
+export TWINE_PASSWORD="pypi-your-token"
+python -m build
+python -m twine upload dist/*
+~~~
+
+The username must be exactly `__token__` when using a PyPI API token.
+
+Never place the token in:
+
+- `pyproject.toml`
+- Shell scripts committed to Git
+- GitHub workflow source
+- README examples
+- Issue comments
+- Logs
+- Source code
+
+For GitHub Actions, store the token as an encrypted repository or environment
+secret such as `PYPI_API_TOKEN`.
+
+### Write operation is blocked
+
+This is expected by default:
+
+~~~text
+write operation is disabled
+~~~
+
+Enable writes explicitly:
+
+~~~yaml
+security:
+  allow_write_operations: true
+~~~
+
+This enables `POST`, `PUT`, and `PATCH`, but not `DELETE`.
+
+### Delete operation is blocked
+
+Enable delete operations independently:
+
+~~~yaml
+security:
+  allow_delete_operations: true
+~~~
+
+Use this only after reviewing the endpoint allowlist and upstream API
+authorization policy.
+
+### Host is blocked or SSRF protection triggers
+
+Check:
+
+~~~yaml
+security:
+  allowed_hosts:
+    - api.example.com
+  block_private_networks: true
+~~~
+
+If the destination resolves to a private, loopback, link-local, reserved,
+multicast, unspecified, or otherwise special address, the request is
+intentionally rejected.
+
+For public API testing, ensure the hostname is explicitly allowed when an
+allowlist is configured:
+
+~~~yaml
+security:
+  allowed_hosts:
+    - jsonplaceholder.typicode.com
+~~~
+
+### Authentication environment variable is missing
+
+For:
+
+~~~yaml
+auth:
+  type: bearer
+  token:
+    env: MCPFORGE_API_TOKEN
+    required: true
+~~~
+
+set:
+
+~~~bash
+export MCPFORGE_API_TOKEN="your-token"
+~~~
+
+Check only whether the variable exists; do not print its value:
+
+~~~bash
+test -n "$MCPFORGE_API_TOKEN" && echo "token configured"
+~~~
+
+### Response is too large
+
+Increase the limit only when the AI client can safely handle the payload:
+
+~~~yaml
+security:
+  max_response_bytes: 10000000
+~~~
+
+Prefer upstream pagination, filtering, or narrower endpoints instead of allowing
+unbounded responses.
+
+### Tool is not visible in the AI client
+
+Check:
+
+1. `mcpforge inspect`
+2. `mcpforge validate`
+3. The client configuration path
+4. The `mcpforge` executable path
+5. Environment-variable inheritance
+6. The selected transport
+7. Client logs
+8. Whether the endpoint was filtered or blocked by safety policy
+
+### MCP server starts but API calls fail
+
+Run:
+
+~~~bash
+mcpforge test \
+  --config ./mcpforge.yaml \
+  --operation your_operation_id
+~~~
+
+Then verify:
+
+- `source.base_url`
+- `allowed_hosts`
+- Environment-backed authentication
+- TLS verification
+- Endpoint path parameters
+- Upstream API permissions
+- Timeout and retry settings
+
+### Ruff reports formatting or lint failures
+
+Run:
+
+~~~bash
+python -m ruff format .
+python -m ruff check --fix .
+python -m ruff check .
+~~~
+
+The CI workflow treats Ruff lint and formatting failures as blocking errors.
+
+### mypy reports type failures
+
+Run:
+
+~~~bash
+python -m mypy src
+~~~
+
+Avoid weakening strict typing with broad `Any` values or unsafe casts. Prefer
+explicit domain models, guards, and typed adapters.
 
 ---
 
 ## Roadmap
 
-### Current Foundation
+### Completed in `v0.1.0`
 
-- [x] Project identity and package structure
-- [x] Pydantic normalized domain model
-- [x] Strict project configuration
-- [x] Environment-variable secret references
-- [x] Typer/Rich CLI foundation
-- [ ] OpenAPI 3.0 and 3.1 ingestion
-- [ ] Swagger 2.0 conversion
-- [ ] Manual YAML ingestion
-- [ ] Deterministic MCP tool generation
-- [ ] Authentication providers
-- [ ] SSRF and host protection
-- [ ] Async HTTP execution
-- [ ] stdio and streamable-http transports
-- [ ] Complete CLI workflow
-- [ ] Enterprise documentation and examples
+- [x] Repository architecture and package boundaries
+- [x] Pydantic v2 normalized domain models
+- [x] YAML and JSON configuration
+- [x] Environment-only secret references
+- [x] OpenAPI 3.0 ingestion
+- [x] OpenAPI 3.1 ingestion
+- [x] Swagger 2.0 ingestion
+- [x] Manual YAML ingestion
+- [x] Local and remote specification loading
+- [x] Local JSON Pointer reference resolution
+- [x] Deterministic MCP tool generation
+- [x] Tool name collision handling
+- [x] Path, tag, and method filtering
+- [x] Read-only defaults
+- [x] Explicit write and delete policies
+- [x] Bearer authentication
+- [x] Header and query API keys
+- [x] Basic authentication
+- [x] Static environment-backed headers
+- [x] Recursive secret redaction
+- [x] SSRF and private-network protection
+- [x] DNS and host validation
+- [x] Redirect and allowed-host enforcement
+- [x] Async HTTP execution
+- [x] Shared HTTP client lifecycle
+- [x] Timeout and retry controls
+- [x] Structured HTTP errors
+- [x] Request and response-size limits
+- [x] MCP SDK adapter layer
+- [x] `stdio` transport
+- [x] `streamable-http` transport
+- [x] Complete CLI workflow
+- [x] Ruff linting and formatting checks
+- [x] Strict mypy checking
+- [x] pytest unit and integration coverage
+- [x] Python 3.11 and 3.12 CI
+- [x] GitHub release `v0.1.0`
+- [x] PyPI distribution `openapi-mcpforge`
+- [x] Live upstream API verification against JSONPlaceholder
 
 ### Near-Term
 
-- OpenAPI specification caching
-- Endpoint-level tool overrides
-- JSON Schema composition support
-- GraphQL or gRPC protocol adapters
-- OAuth 2.0 device authorization
-- OAuth 2.0 client credentials
-- Interactive secret resolution
-- Docker and Kubernetes examples
-- OpenTelemetry-compatible tracing
-- Structured audit events
-- Secret-manager provider plugins
-- MCP prompt and resource generation
-- Response transformation templates
-- Interactive local configuration UI
+- [ ] Improved OpenAPI composition support for `allOf`, `oneOf`, and `anyOf`
+- [ ] Multipart and file-upload schema support
+- [ ] Endpoint-level enable/disable overrides
+- [ ] Advanced serialization styles and explode rules
+- [ ] OAuth 2.0 device authorization
+- [ ] OAuth 2.0 client credentials
+- [ ] Secret-manager integrations
+- [ ] Docker deployment examples
+- [ ] Kubernetes deployment examples
+- [ ] OpenTelemetry-compatible tracing
+- [ ] Structured audit event exports
+- [ ] API schema drift detection
+- [ ] Response transformation templates
+- [ ] MCP resources and prompts
 
 ### Long-Term
 
-- API registry integration
-- Remote specification discovery
-- Signed configuration packages
-- Policy-as-code plugins
-- Organization-wide host allowlists
-- Central credential brokers
-- Automated schema drift detection
-- Built-in API mock server
-- Multi-API MCP gateway
-- Per-user authorization mapping
-- Enterprise audit and observability exports
-- Compliance reporting
-- Plugin marketplace for parsers and transports
+- [ ] GraphQL protocol adapter
+- [ ] gRPC protocol adapter
+- [ ] Multi-API MCP gateway
+- [ ] API registry integration
+- [ ] Signed configuration packages
+- [ ] Organization-wide policy plugins
+- [ ] Central credential brokers
+- [ ] Per-user authorization mapping
+- [ ] Built-in API mock server
+- [ ] Compliance and audit reporting
+- [ ] Extension marketplace for parsers and transports
+
+---
+
+## Contributing
+
+Contributions are welcome.
+
+Before opening a pull request:
+
+- Keep the dependency direction intact.
+- Keep `domain` framework-independent.
+- Keep official MCP SDK imports inside `mcpforge.mcp`.
+- Add focused tests for new behavior.
+- Do not add credentials or sensitive fixtures.
+- Preserve read/write/delete safety defaults.
+- Preserve SSRF and host validation.
+- Run `make check`.
+- Update documentation for user-visible changes.
+- Update `CHANGELOG.md` when appropriate.
+
+Recommended workflow:
+
+~~~bash
+git checkout -b feature/my-change
+python -m pip install -e ".[dev]"
+make check
+git commit -m "Add my change"
+git push origin feature/my-change
+~~~
 
 ---
 
 ## License and Attribution
 
-MCPForge is licensed under the [MIT License](LICENSE).
+MCPForge is released under the [MIT License](LICENSE).
 
 Copyright 2026 [AshishVail](https://github.com/AshishVail).
 
+- GitHub: [AshishVail/mcpforge](https://github.com/AshishVail/mcpforge)
+- PyPI: [openapi-mcpforge](https://pypi.org/project/openapi-mcpforge/)
+- Release: [v0.1.0](https://github.com/AshishVail/mcpforge/releases/tag/v0.1.0)
+
 MCPForge is independently maintained and is not affiliated with Anthropic,
-Claude, Cursor, Microsoft, Windsurf, or the maintainers of the official MCP SDK.
-All trademarks belong to their respective owners.
-
-If MCPForge helps automate API integration for your team or project, consider:
-
-- Starring the repository
-- Reporting bugs and security issues
-- Adding supported specifications
-- Improving documentation
-- Contributing parsers, auth providers, or MCP integrations
-- Sharing your deployment architecture
+Claude, Cursor, Microsoft, Windsurf, or the maintainers of the official MCP
+SDK. All trademarks belong to their respective owners.
