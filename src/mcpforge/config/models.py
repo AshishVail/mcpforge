@@ -1,4 +1,4 @@
-"""Strict user-facing project configuration models."""
+"""Strict user-facing MCPForge project configuration models."""
 
 from typing import Annotated, Literal, Self
 
@@ -13,19 +13,27 @@ class EnvReference(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    env: Annotated[str, Field(min_length=1, pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
+    env: Annotated[
+        str,
+        Field(
+            min_length=1,
+            pattern=r"^[A-Za-z_][A-Za-z0-9_]*$",
+        ),
+    ]
     required: bool = True
     default: str | None = None
 
     @model_validator(mode="after")
     def validate_default(self) -> Self:
         if self.required and self.default is not None:
-            raise ValueError("required environment references cannot define defaults")
+            raise ValueError(
+                "required environment references cannot define defaults"
+            )
         return self
 
 
 class ApiSourceConfig(BaseModel):
-    """Input API specification source."""
+    """API specification source configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -36,12 +44,16 @@ class ApiSourceConfig(BaseModel):
 
 
 class NoAuthConfig(BaseModel):
+    """Explicitly unauthenticated API configuration."""
+
     model_config = ConfigDict(extra="forbid")
 
     type: Literal[AuthType.NONE] = AuthType.NONE
 
 
 class BearerAuthConfig(BaseModel):
+    """Bearer-token authentication configuration."""
+
     model_config = ConfigDict(extra="forbid")
 
     type: Literal[AuthType.BEARER] = AuthType.BEARER
@@ -49,6 +61,8 @@ class BearerAuthConfig(BaseModel):
 
 
 class ApiKeyAuthConfig(BaseModel):
+    """API-key authentication configuration."""
+
     model_config = ConfigDict(extra="forbid")
 
     type: Literal[AuthType.API_KEY] = AuthType.API_KEY
@@ -58,6 +72,8 @@ class ApiKeyAuthConfig(BaseModel):
 
 
 class BasicAuthConfig(BaseModel):
+    """HTTP Basic authentication configuration."""
+
     model_config = ConfigDict(extra="forbid")
 
     type: Literal[AuthType.BASIC] = AuthType.BASIC
@@ -66,6 +82,8 @@ class BasicAuthConfig(BaseModel):
 
 
 class StaticHeadersAuthConfig(BaseModel):
+    """Environment-backed static header configuration."""
+
     model_config = ConfigDict(extra="forbid")
 
     type: Literal[AuthType.STATIC_HEADERS] = AuthType.STATIC_HEADERS
@@ -85,7 +103,7 @@ AuthConfig = (
 
 
 class EndpointFilterConfig(BaseModel):
-    """Endpoint selection rules."""
+    """Endpoint inclusion and exclusion rules."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -98,7 +116,7 @@ class EndpointFilterConfig(BaseModel):
 
 
 class SecurityConfig(BaseModel):
-    """Global safety and network controls."""
+    """Operation and network security controls."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -119,7 +137,7 @@ class RetryConfig(BaseModel):
 
 
 class HttpConfig(BaseModel):
-    """HTTP execution settings."""
+    """HTTP client and retry settings."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -129,13 +147,16 @@ class HttpConfig(BaseModel):
 
 
 class ProjectConfig(BaseModel):
-    """Top-level ``mcpforge.yaml`` configuration."""
+    """Top-level ``mcpforge.yaml`` project configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
     name: Annotated[
         str,
-        Field(min_length=1, pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]*$"),
+        Field(
+            min_length=1,
+            pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]*$",
+        ),
     ] = "mcpforge-project"
     source: ApiSourceConfig
     auth: AuthConfig = Field(default_factory=NoAuthConfig)
@@ -148,11 +169,17 @@ class ProjectConfig(BaseModel):
         validate_secret_references(self.model_dump(mode="python"))
 
         if self.source.base_url is not None and self.security.allowed_hosts:
-            host = self.source.base_url.host
-            if host not in self.security.allowed_hosts:
+            source_host = self.source.base_url.host
+            allowed_hosts = {
+                host.strip().rstrip(".").lower()
+                for host in self.security.allowed_hosts
+            }
+            if source_host.lower().rstrip(".") not in allowed_hosts:
                 raise ValueError(
-                    f"source host {host!r} is not present in security.allowed_hosts"
+                    f"source host {source_host!r} is not present in "
+                    "security.allowed_hosts"
                 )
+
         return self
 
     def safe_dump(self) -> dict[str, object]:
