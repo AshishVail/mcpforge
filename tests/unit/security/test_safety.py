@@ -27,9 +27,7 @@ def test_delete_has_independent_opt_in() -> None:
     endpoint = Endpoint(
         path="/items/{id}",
         method=HttpMethod.DELETE,
-        parameters=[
-            Parameter(name="id", location=ParameterLocation.PATH, required=True)
-        ],
+        parameters=[Parameter(name="id", location=ParameterLocation.PATH, required=True)],
     )
 
     with pytest.raises(PermissionError):

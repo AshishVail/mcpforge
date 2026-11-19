@@ -11,6 +11,7 @@ app = typer.Typer(
     help="Load and normalize an API specification.",
 )
 
+
 @app.command()
 def import_spec(
     source: Annotated[str, typer.Argument(help="Local path or HTTP(S) URL.")],

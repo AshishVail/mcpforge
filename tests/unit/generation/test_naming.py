@@ -10,9 +10,7 @@ def test_operation_id_has_priority() -> None:
                 operation_id="getUserProfile",
                 path="/users/{id}",
                 method=HttpMethod.GET,
-                parameters=[
-                    Parameter(name="id", location=ParameterLocation.PATH, required=True)
-                ],
+                parameters=[Parameter(name="id", location=ParameterLocation.PATH, required=True)],
             )
         )
         == "get_user_profile"
@@ -26,9 +24,7 @@ def test_collection_and_item_names_are_deterministic() -> None:
             Endpoint(
                 path="/users/{id}",
                 method=HttpMethod.GET,
-                parameters=[
-                    Parameter(name="id", location=ParameterLocation.PATH, required=True)
-                ],
+                parameters=[Parameter(name="id", location=ParameterLocation.PATH, required=True)],
             )
         )
         == "get_user"
