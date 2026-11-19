@@ -13,7 +13,7 @@ class ToolParameter(BaseModel):
     name: str
     location: str
     required: bool = False
-    schema: dict[str, Any] = Field(default_factory=dict)
+    schema: dict[str, Any] = Field(default_factory=dict)  # type: ignore[assignment]
     description: str | None = None
 
 

@@ -21,7 +21,9 @@ def is_retryable_status(status_code: int) -> bool:
 def retry_delay(config: RetryConfig, attempt: int) -> float:
     """Calculate exponential backoff delay."""
 
-    return config.backoff_seconds * (2 ** max(0, attempt - 1))
+    backoff_seconds = float(str(config.backoff_seconds))
+    multiplier = float(2 ** max(0, attempt - 1))
+    return backoff_seconds * multiplier
 
 
 async def run_with_retries(

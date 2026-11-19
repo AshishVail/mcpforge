@@ -44,10 +44,10 @@ def parse_response(
         )
 
     if not content:
-        payload: Any = None
+        success_payload: Any = None
     else:
         try:
-            payload = response.json()
+            success_payload = response.json()
         except (json.JSONDecodeError, ValueError) as exc:
             raise ExecutionFailure(
                 ExecutionError(
@@ -60,5 +60,5 @@ def parse_response(
     return {
         "ok": True,
         "status_code": response.status_code,
-        "data": payload,
+        "data": success_payload,
     }
