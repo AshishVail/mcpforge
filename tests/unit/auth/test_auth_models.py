@@ -13,4 +13,5 @@ def test_redacted_auth_does_not_expose_values() -> None:
 
     assert redacted.headers["Authorization"] == "***REDACTED***"
     assert redacted.query["api_key"] == "***REDACTED***"
-    assert redacted.password == "***REDACTED***",
+    assert redacted.username == "***REDACTED***"
+    assert redacted.password == "***REDACTED***"
