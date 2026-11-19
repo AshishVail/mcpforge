@@ -5,6 +5,7 @@ from typing import Annotated
 import typer
 
 from mcpforge import __version__
+from mcpforge.cli.commands import import_spec, init, inspect, run, serve, test, validate
 from mcpforge.cli.output import console
 
 app = typer.Typer(
@@ -13,6 +14,14 @@ app = typer.Typer(
     no_args_is_help=True,
     add_completion=False,
 )
+
+app.add_typer(init.app)
+app.add_typer(import_spec.app)
+app.add_typer(inspect.app)
+app.add_typer(validate.app)
+app.add_typer(test.app)
+app.add_typer(serve.app)
+app.add_typer(run.app)
 
 
 @app.callback()
